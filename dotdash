@@ -10,7 +10,7 @@ from string import Template
 
 def link(candidate, rendered, dotfile, dry_run):
     """
-    Link dotfiles to files in given profiles.
+    Link dotfiles to files in given profile directories.
     """
 
     # Create rendered file from template
@@ -40,7 +40,7 @@ def link(candidate, rendered, dotfile, dry_run):
 
 def unlink(candidate, rendered, dotfile, dry_run):
     """
-    Unlink dotfiles that are linked to files in given profiles.
+    Unlink dotfiles linked to files in given profile directories.
     """
     if dotfile.exists():
         if dotfile.is_symlink():
@@ -59,7 +59,7 @@ def unlink(candidate, rendered, dotfile, dry_run):
 
 def run(command, home, profiles, dry_run):
     """
-    Run given command on all profiles.
+    Run given command on all profile directories.
     """
     home = Path(home).expanduser().resolve()
     if home.is_dir():
@@ -84,8 +84,6 @@ def run(command, home, profiles, dry_run):
 def try_then_run(command, home, profiles, dry_run):
     """
     Manage links to dotfiles.
-
-    Recommended: add **/*.rendered to .gitignore
     """
     logger.setLevel(logging.INFO if dry_run else logging.WARNING)
 
