@@ -57,7 +57,7 @@ def unlink(candidate, rendered, dotfile, dry_run):
         logger.warning(f"File {dotfile} does not exists")
 
 
-def try_then_run(command, home, profiles, dry_run):
+def dry_run_then_wet_run(command, home, profiles, dry_run):
     """
     Manage links to dotfiles.
     """
@@ -157,4 +157,4 @@ def get_logger():
 if __name__ == "__main__":
     COMMANDS = {"link": link, "unlink": unlink}
     logger = get_logger()
-    try_then_run(**parse_arguments())
+    dry_run_then_wet_run(**parse_arguments())
