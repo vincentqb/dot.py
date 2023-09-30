@@ -10,7 +10,7 @@ from string import Template
 
 def link(candidate, rendered, dotfile, dry_run):
     """
-    Link dotfiles to files in given folders in an idempotent way.
+    Link dotfiles to files in given profiles.
     """
 
     # Create rendered file from template
@@ -40,7 +40,7 @@ def link(candidate, rendered, dotfile, dry_run):
 
 def unlink(candidate, rendered, dotfile, dry_run):
     """
-    Unlink dotfiles that are linked to files in given folders.
+    Unlink dotfiles that are linked to files in given profiles.
     """
     if dotfile.exists():
         if dotfile.is_symlink():
@@ -57,16 +57,16 @@ def unlink(candidate, rendered, dotfile, dry_run):
         logger.warning(f"File {dotfile} does not exists")
 
 
-def run(command, home, folders, dry_run):
+def run(command, home, profiles, dry_run):
     """
-    Run given command on all folders.
+    Run given command on all profiles.
     """
     home = Path(home).expanduser().resolve()
     if home.is_dir():
-        for folder in folders:
-            folder = Path(folder).expanduser().resolve()
-            if folder.is_dir():
-                for candidate in sorted(folder.glob("*")):
+        for profile in profiles:
+            profile = Path(profile).expanduser().resolve()
+            if profile.is_dir():
+                for candidate in sorted(profile.glob("*")):
                     name = candidate.name
                     if name.startswith("."):
                         logger.debug(f"File {candidate} ignored.")
@@ -76,12 +76,12 @@ def run(command, home, folders, dry_run):
                         dotfile = home / ("." + re.sub(".template$", "", name))
                         command(candidate, rendered, dotfile, dry_run)
             else:
-                logger.warning(f"Folder {folder} does not exist")
+                logger.warning(f"Profile {profile} does not exist")
     else:
         logger.warning(f"Folder {home} does not exist")
 
 
-def try_then_run(command, home, folders, dry_run):
+def try_then_run(command, home, profiles, dry_run):
     """
     Manage links to dotfiles.
 
@@ -90,14 +90,14 @@ def try_then_run(command, home, folders, dry_run):
     logger.setLevel(logging.INFO if dry_run else logging.WARNING)
 
     command = COMMANDS[command]
-    run(command, home, folders, dry_run=True)
+    run(command, home, profiles, dry_run=True)
 
     if logger.warning.counter > 0:
         logger.error("There were conflicts: exiting without changing dotfiles.")
         raise SystemExit()
 
     if not dry_run:
-        run(command, home, folders, dry_run=False)
+        run(command, home, profiles, dry_run=False)
 
 
 def parse_arguments():
@@ -106,7 +106,7 @@ def parse_arguments():
 
     for key, func in COMMANDS.items():
         subparser = subparsers.add_parser(key, description=func.__doc__)
-        subparser.add_argument("folders", nargs="+")
+        subparser.add_argument("profiles", nargs="+")
         subparser.add_argument("--home", nargs="?", default="~")
         subparser.add_argument("-d", "--dry-run", default=False, action=BooleanOptionalAction)
 
