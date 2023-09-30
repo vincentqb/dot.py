@@ -1,15 +1,15 @@
-# dotdash
+# dot.py
 
-dotdash is a minimalist script to manage symbolic links to dotfiles, inspired by [bashdot](https://github.com/bashdot/bashdot). It links files and directories into a user's home from a directory known as a **profile**. It supports multiple profiles and file templates with variables.
+dot.py is a minimalist script to manage symbolic links to dotfiles, inspired by [bashdot](https://github.com/bashdot/bashdot). It links files and directories into a user's home from a directory known as a **profile**. It supports multiple profiles and file templates with variables.
 
-dotdash is a single script, written entirely in python, easily auditable, requiring no dependencies other than **python 3.6+**.
+dot.py is a single script, written entirely in python, easily auditable, requiring no dependencies other than **python 3.6+**.
 
 ## Install
 
 You can simply clone the repository.
 
 ```sh
-git clone https://github.com/vincentqb/dotdash ~/dotdash
+git clone https://github.com/vincentqb/dot.py ~/dot.py
 ```
 
 ## Quick Start
@@ -26,10 +26,10 @@ git clone https://github.com/vincentqb/dotdash ~/dotdash
     echo 'set -o vi' > default/env
     ```
 
-1. Link the profile. When you link, dotdash prepends a dot, in front of the original file name, to the linked file. Below, `default/env` will be linked to `~/.env`.
+1. Link the profile. When you link, dot.py prepends a dot, in front of the original file name, to the linked file. Below, `default/env` will be linked to `~/.env`.
 
     ```sh
-    ~/dotdash/dotdash link default
+    ~/dot.py/dot.py link default
     ```
 
 1. Continue adding your dotfiles to the default profile.
@@ -42,7 +42,7 @@ git clone https://github.com/vincentqb/dotdash ~/dotdash
 
 ## Templates
 
-Values which need to be set in a file when dotdash is run can be placed in a template.
+Values which need to be set in a file when dot.py is run can be placed in a template.
 
 1. Append `.template` to any files which should be rendered. For example, assume you have a file `default/env.template` containing:
 
@@ -53,7 +53,7 @@ Values which need to be set in a file when dotdash is run can be placed in a tem
 1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile:
 
     ```sh
-    env ENV_SECRET_KEY=test1234 ~/dotdash/dotdash link default
+    env ENV_SECRET_KEY=test1234 ~/dot.py/dot.py link default
     ```
 
 1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/env.rendered` being created and linked to `~/.env` with the below contents.
@@ -66,4 +66,4 @@ Values which need to be set in a file when dotdash is run can be placed in a tem
 
 ## Testing during Development
 
-Install and then run `pytest` from the root of the repository.
+Install and then run `python3 -m pytest` from the root of the repository.
