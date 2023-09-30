@@ -63,3 +63,11 @@ Values which need to be set in a file when dotdash is run can be placed in a tem
     ```
 
 1. Be sure to include `**/*.rendered` in `.gitignore` if you put your dotfiles into a git repository.
+
+## Testing
+
+Install `pytest` and then simply run:
+
+```sh
+pytest
+```
