@@ -30,6 +30,12 @@ def root():
         with open(candidate, "w") as fp:
             fp.write("set -o vi")
 
+        candidate = root / "default" / "env.template"
+        candidate.parent.mkdir(parents=True)
+
+        with open(candidate, "w") as fp:
+            fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
+
         yield root
 
 
@@ -60,19 +66,29 @@ def test_system_exit(root, command, dry_run):
     assert not (home / "not_a_profile").is_dir()
 
 
-def test_link_template(root):
+def test_link_unlink_template(root):
 
-    home = str(root / "home")
-
+    home = root / "home"
     profile = root / "default"
-    profile.mkdir(parents=True)
-    candidate = profile / "env.template"
-
-    with open(candidate, "w") as fp:
-        fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
 
     with set_env(APP_SECRET_KEY="abc123"):
+        main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
+        assert not (profile / "env.rendered").exists()
+        assert not (home / ".env").is_symlink()
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
+        assert (profile / "env.rendered").exists()
+        assert (home / ".env").is_symlink()
 
-    with open(profile / "env.rendered", "r") as fp:
+    with open(home / ".env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
+
+    main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
+    assert (home / ".env").is_symlink()
+    assert (profile / "env.rendered").exists()
+
+    with open(home / ".env", "r") as fp:
+        assert fp.read() == "export APP_SECRET_KEY=abc123"
+
+    main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
+    assert not (home / ".env").is_symlink()
+    assert (profile / "env.rendered").exists()
