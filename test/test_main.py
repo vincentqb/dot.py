@@ -38,10 +38,10 @@ def test_link_unlink_profile(root):
     profile = root / "another"
 
     main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
-    assert (home / ".bashrc").exists()
+    assert (home / ".bashrc").is_symlink()
 
     main(command="unlink", home=home, profiles=[profile], dry_run=False)
-    assert not (home / ".bashrc").exists()
+    assert not (home / ".bashrc").is_symlink()
 
 
 def test_link_system_exit(root):
