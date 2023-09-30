@@ -19,6 +19,7 @@ def set_env(**environ):
 
 @pytest.fixture
 def dotdash_main():
+    # Work around missing .py in script name
     import importlib.machinery
     import types
 
@@ -30,43 +31,47 @@ def dotdash_main():
 
 @pytest.fixture
 def root():
-    cwd = os.getcwd()
-    root = tempfile.TemporaryDirectory()
-    os.chdir(root.name)
-    path = Path(root.name)
+    with tempfile.TemporaryDirectory() as root:
+        path = Path(str(root))
+        home = path / "home"
+        home.mkdir(parents=True)
 
-    home = path / "home"
-    home.mkdir(parents=True)
+        candidate = path / "another" / "bashrc"
+        candidate.parent.mkdir(parents=True)
+        with open(candidate, "w") as fp:
+            fp.write("set -o vi")
 
-    candidate = path / "another" / "bashrc"
-    candidate.parent.mkdir(parents=True)
-    with open(candidate, "w") as fp:
-        fp.write("set -o vi")
-
-    yield path
-
-    root.cleanup()
-    os.chdir(cwd)
+        yield path
 
 
 def test_link_unlink_profile(dotdash_main, root):
-    dotdash_main(command="link", home=str(root / "home"), profiles=["another"], dry_run=False)
-    dotdash_main(command="unlink", home=str(root / "home"), profiles=["another"], dry_run=False)
+    home = str(root / "home")
+    profile = str(root / "another")
+    dotdash_main(command="link", home=home, profiles=[profile], dry_run=False)
+    dotdash_main(command="unlink", home=home, profiles=[profile], dry_run=False)
 
 
 def test_link_system_exit(dotdash_main, root):
+    home = str(root / "home")
+    profile = str(root / "not_a_profile")
     with pytest.raises(SystemExit):
-        dotdash_main(command="link", home=str(root / "home"), profiles=["not_a_profile"], dry_run=False)
+        dotdash_main(command="link", home=home, profiles=[profile], dry_run=False)
 
 
 def test_link_template(dotdash_main, root):
-    candidate = root / "default" / "env.template"
-    candidate.parent.mkdir(parents=True)
+
+    profile = root / "default"
+    profile.mkdir(parents=True)
+    candidate = profile / "env.template"
+
     with open(candidate, "w") as fp:
         fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
 
-    with set_env(APP_SECRET_KEY="abc123"):
-        dotdash_main(command="link", home=str(root / "home"), profiles=["default"], dry_run=False)
+    home_str = str(root / "home")
+    profile_str = str(root / "default")
 
-    with open(root / "default" / "env.rendered", "r") as fp:
+    with set_env(APP_SECRET_KEY="abc123"):
+        dotdash_main(command="link", home=home_str, profiles=[profile_str], dry_run=False)
+
+    with open(profile / "env.rendered", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
