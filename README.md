@@ -1,12 +1,10 @@
 # dot.py
 
-**dot.py** is a minimalist script to manage symbolic links to dotfiles, inspired by [bashdot](https://github.com/bashdot/bashdot). It links files and directories into a user's home from a directory known as a profile. It supports multiple profiles and file templates with variables.
-
-dot.py is a single script, written entirely in python, requiring no dependencies other than **python 3.6+**.
+**dot.py** is a minimalist python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.6+**.
 
 ## Install
 
-You can simply clone the repository.
+Simply clone the repository.
 
 ```sh
 git clone https://github.com/vincentqb/dot.py ~/dot.py
