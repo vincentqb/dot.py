@@ -26,7 +26,7 @@ git clone https://github.com/vincentqb/dotdash ~/dotdash
     echo 'set -o vi' > default/env
     ```
 
-1. Link the profile. When you link, dotdash prepends a dot, in front of the original filename, to the linked file. Below, `default/env` will be linked to `~/.env`.
+1. Link the profile. When you link, dotdash prepends a dot, in front of the original file name, to the linked file. Below, `default/env` will be linked to `~/.env`.
 
     ```sh
     ~/dotdash/dotdash link default
@@ -56,7 +56,7 @@ Values which need to be set in a file when dotdash is run can be placed in a tem
     env ENV_SECRET_KEY=test1234 ~/dotdash/dotdash link default
     ```
 
-1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot pre-prended. In the example, this will result in the rendered file `default/env.rendered` being created and linked to `~/.env` with the below contents.
+1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/env.rendered` being created and linked to `~/.env` with the below contents.
 
     ```sh
     export SECRET_KEY=test1234
@@ -64,13 +64,6 @@ Values which need to be set in a file when dotdash is run can be placed in a tem
 
 1. Be sure to include `**/*.rendered` in `.gitignore` if you put your dotfiles into a git repository.
 
-## Testing for Development
+## Testing during Development
 
-1. Install `pytest`
-
-    ```sh
-    python3 -m ensurepip --user --upgrade
-    python3 -m pip install --user --upgrade pytest
-    ```
-
-1. Run `pytest` from the root of the repository.
+Install and then run `pytest` from the root of the repository.
