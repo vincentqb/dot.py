@@ -97,7 +97,7 @@ def dry_run_then_wet_run(command, home, profiles, dry_run):
 
 
 def parse_arguments():
-    parser = ArgumentParser(description=try_then_run.__doc__)
+    parser = ArgumentParser(description=dry_run_then_wet_run.__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     for key, func in COMMANDS.items():
