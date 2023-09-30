@@ -64,4 +64,4 @@ Values which need to be set in a file when dot.py is run can be placed in a temp
 
 ## Testing during Development
 
-Install and then run `python3 -m pytest` from the root of the repository.
+Run tests with pytest using `python3 -m pytest` from the root of the repository.
