@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from dot import dry_run_then_wet_run as main
+from dot import main
 
 
 @contextlib.contextmanager

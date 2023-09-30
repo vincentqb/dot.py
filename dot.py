@@ -101,7 +101,7 @@ def unlink(candidate, rendered, dotfile, dry_run, logger):
         logger.warning(f"File {dotfile} does not exists")
 
 
-def dry_run_then_wet_run(command, home, profiles, dry_run):
+def main(command, home, profiles, dry_run):
     """
     Manage links to dotfiles.
     """
@@ -130,31 +130,30 @@ def dry_run_then_wet_run(command, home, profiles, dry_run):
         else:
             logger.warning(f"Folder {home} does not exist")
 
-    # Always do a dry run first
-    run(dry_run=True)
+    run(dry_run=True)  # Dry run first
 
     if logger.warning.counter > 0:
         logger.error("There were conflicts: exiting without changing dotfiles.")
         raise SystemExit()
 
     if not dry_run:
-        run(dry_run=dry_run)
-
-
-def parse_arguments():
-    parser = ArgumentParser(description=dry_run_then_wet_run.__doc__)
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    for key, func in COMMANDS.items():
-        subparser = subparsers.add_parser(key, description=func.__doc__)
-        subparser.add_argument("profiles", nargs="+")
-        subparser.add_argument("--home", nargs="?", default="~")
-        subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
-        subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
-
-    return vars(parser.parse_args())
+        run(dry_run=dry_run)  # Wet run second
 
 
 COMMANDS = {"link": link, "unlink": unlink}
 if __name__ == "__main__":
-    dry_run_then_wet_run(**parse_arguments())
+
+    def parse_arguments():
+        parser = ArgumentParser(description=main.__doc__)
+        subparsers = parser.add_subparsers(dest="command", required=True)
+
+        for key, func in COMMANDS.items():
+            subparser = subparsers.add_parser(key, description=func.__doc__)
+            subparser.add_argument("profiles", nargs="+")
+            subparser.add_argument("--home", nargs="?", default="~")
+            subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
+            subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
+
+        return vars(parser.parse_args())
+
+    main(**parse_arguments())
