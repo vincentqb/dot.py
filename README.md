@@ -29,7 +29,7 @@ git clone https://github.com/vincentqb/dotdash ~/dotdash
 1. Install the profile.
 
     ```sh
-    ~/dotdash/dotdash.py link default
+    ~/dotdash/dotdash link default
     ```
     Note, when you run install, dotdash **prepends a dot**, in front of the original filename, to the linked file.
 
@@ -67,7 +67,7 @@ environment variables set when dotdash is run.
     You can run the following to set the value **ENV_SECRET_KEY** when installing the home profile:
 
     ```sh
-    env ENV_SECRET_KEY=test1234 ~/dotdash/dotdash.py link default
+    env ENV_SECRET_KEY=test1234 ~/dotdash/dotdash link default
     ```
 
     This will result in the rendered file **default/env.rendered** being created and symlinkd to **~/.env** with the below contents.
