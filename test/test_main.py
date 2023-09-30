@@ -36,8 +36,12 @@ def root():
 def test_link_unlink_profile(root):
     home = str(root / "home")
     profile = str(root / "another")
+
     main(command="link", home=home, profiles=[profile], dry_run=False)
+    assert (Path(home) / ".bashrc").exists()
+
     main(command="unlink", home=home, profiles=[profile], dry_run=False)
+    assert not (Path(home) / ".bashrc").exists()
 
 
 def test_link_system_exit(root):
@@ -45,6 +49,9 @@ def test_link_system_exit(root):
     profile = str(root / "not_a_profile")
     with pytest.raises(SystemExit):
         main(command="link", home=home, profiles=[profile], dry_run=False)
+    with pytest.raises(SystemExit):
+        main(command="link", home=home, profiles=[profile], dry_run=True)
+    assert not (Path(home) / "not_a_profile").is_dir()
 
 
 def test_link_template(root):
