@@ -1,4 +1,6 @@
-**dot.py** is a minimalist script to manage symbolic links to dotfiles, inspired by [bashdot](https://github.com/bashdot/bashdot). It links files and directories into a user's home from a directory known as a **profile**. It supports multiple profiles and file templates with variables.
+# dot.py
+
+dot.py is a minimalist script to manage symbolic links to dotfiles, inspired by [bashdot](https://github.com/bashdot/bashdot). It links files and directories into a user's home from a directory known as a **profile**. It supports multiple profiles and file templates with variables.
 
 dot.py is a single script, written entirely in python, easily auditable, requiring no dependencies other than **python 3.6+**.
 
