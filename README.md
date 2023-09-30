@@ -64,10 +64,13 @@ Values which need to be set in a file when dotdash is run can be placed in a tem
 
 1. Be sure to include `**/*.rendered` in `.gitignore` if you put your dotfiles into a git repository.
 
-## Testing
+## Testing for Development
 
-Install `pytest` and then simply run:
+1. Install `pytest`
 
 ```sh
-pytest
+python3 -m ensurepip --user --upgrade
+python3 -m pip install --user --upgrade pytest
 ```
+
+1. Run `pytest` from the root of the repository.
