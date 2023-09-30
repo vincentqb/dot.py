@@ -3,7 +3,7 @@
 import logging
 import os
 import re
-from argparse import ArgumentParser, BooleanOptionalAction
+from argparse import ArgumentParser
 from pathlib import Path
 from string import Template
 
@@ -25,7 +25,7 @@ def link(candidate, rendered, dotfile, dry_run):
     # Create link
     if dotfile.exists():
         if dotfile.is_symlink():
-            link = dotfile.readlink()
+            link = Path(os.readlink(str(dotfile))).expanduser().resolve()
             if link == rendered:
                 logger.info(f"File {dotfile} links to {rendered} as expected")
             else:
@@ -44,7 +44,7 @@ def unlink(candidate, rendered, dotfile, dry_run):
     """
     if dotfile.exists():
         if dotfile.is_symlink():
-            link = dotfile.readlink()
+            link = Path(os.readlink(str(dotfile))).expanduser().resolve()
             if link == rendered:
                 if not dry_run:
                     dotfile.unlink()
@@ -106,7 +106,8 @@ def parse_arguments():
         subparser = subparsers.add_parser(key, description=func.__doc__)
         subparser.add_argument("profiles", nargs="+")
         subparser.add_argument("--home", nargs="?", default="~")
-        subparser.add_argument("-d", "--dry-run", default=False, action=BooleanOptionalAction)
+        subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
+        subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
 
     return vars(parser.parse_args())
 
