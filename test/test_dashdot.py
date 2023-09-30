@@ -1,9 +1,9 @@
-import tempfile
-import pytest
-from pathlib import Path
-
 import contextlib
 import os
+import tempfile
+from pathlib import Path
+
+import pytest
 
 
 @contextlib.contextmanager
