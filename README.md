@@ -20,20 +20,17 @@ git clone https://github.com/vincentqb/dotdash ~/dotdash
     mkdir default
     ```
 
-1. Add any files you would like symlinked into your home directory when this profile is installed:
+1. Add any files you would like symlinked into your home directory when this profile is linked:
 
     ```sh
     echo 'set -o vi' > default/env
     ```
 
-1. Install the profile.
+1. Link the profile. When you link, dotdash **prepends a dot**, in front of the original filename, to the linked file. Below, **default/env** will be linked to **~/.env**.
 
     ```sh
     ~/dotdash/dotdash link default
     ```
-    Note, when you run install, dotdash **prepends a dot**, in front of the original filename, to the linked file.
-
-    In the above, **default/env** will now be linked to **~/.env**.
 
 1. Continue adding your dotfiles to the default profile.
 
@@ -41,39 +38,28 @@ git clone https://github.com/vincentqb/dotdash ~/dotdash
    mv ~/.bashrc default/bashrc
    ```
 
-1. dotdash is indempotent so you can safely re-run the install command to link newly added files. Store this directory in a cloud drive or source control. Repeat for additional profiles.
+1. You can safely re-run the link command to link newly added files. Store this profile directory in a cloud drive or source control. Repeat for additional profiles.
 
 ## Templates
 
 Values which need to be set in a file when dotdash is run can be placed in a template.
 
-1. Append **.template** to any files which should be rendered.
-
-1. When installed, template files will have all variables replaced with the current
-environment variables set when dotdash is run.
-
-1. The rendered files will be created in the same directory, and have **.template** replaced with **.rendered**.
-
-1. The rendered file will be symlinked into the home directory with the .rendered suffix removed and a pre-prended dot.
-
-1. For example:
-
-    If you have the file **default/env.template** with the below contents:
+1. Append **.template** to any files which should be rendered. For example, assume you have a file **default/env.template** containing:
 
     ```sh
     export SECRET_KEY=$ENV_SECRET_KEY
     ```
 
-    You can run the following to set the value **ENV_SECRET_KEY** when installing the home profile:
+1. The rendered files will be created in the same directory, and have **.template** replaced with **.rendered**. In the example, you can run the following to set the value **ENV_SECRET_KEY** when linking the default profile:
 
     ```sh
     env ENV_SECRET_KEY=test1234 ~/dotdash/dotdash link default
     ```
 
-    This will result in the rendered file **default/env.rendered** being created and symlinkd to **~/.env** with the below contents.
+1. The rendered file will be symlinked into the home directory with the **.rendered** suffix removed and a dot pre-prended. In the example, this will result in the rendered file **default/env.rendered** being created and symlinkd to **~/.env** with the below contents.
 
     ```sh
     export SECRET_KEY=test1234
     ```
 
-1. Be sure to include **\*\*/\*.rendered** in **.gitignore** if you will be checking your dotfiles into a git repository.
+1. Be sure to include **\*\*/\*.rendered** in **.gitignore** if you check your dotfiles into a git repository.
