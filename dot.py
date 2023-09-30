@@ -106,6 +106,7 @@ def dry_run_then_wet_run(command, home, profiles, dry_run):
     Manage links to dotfiles.
     """
     logger = get_logger()
+    logger.warning.counter = 0
     logger.setLevel(logging.INFO if dry_run else logging.WARNING)
 
     home = Path(home).expanduser().resolve()
