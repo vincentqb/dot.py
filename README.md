@@ -62,6 +62,6 @@ Values which need to be set in a file when dot.py is run can be placed in a temp
 
 1. Be sure to include `**/*.rendered` in `.gitignore` if you put your dotfiles into a git repository.
 
-## Testing during Development
+## Testing
 
-Run tests with pytest using `python3 -m pytest` from the root of the repository.
+Run tests with `python3 -m pytest` from the root of the repository.
