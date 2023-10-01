@@ -101,7 +101,7 @@ def unlink(candidate, rendered, dotfile, dry_run, logger):
         logger.warning(f"File {dotfile} does not exists")
 
 
-def main(command, home, profiles, dry_run):
+def dot(command, home, profiles, dry_run):
     """
     Manage links to dotfiles.
     """
@@ -144,7 +144,7 @@ COMMANDS = {"link": link, "unlink": unlink}
 if __name__ == "__main__":
 
     def parse_arguments():
-        parser = ArgumentParser(description=main.__doc__)
+        parser = ArgumentParser(description=dot.__doc__)
         subparsers = parser.add_subparsers(dest="command", required=True)
 
         for key, func in COMMANDS.items():
@@ -156,4 +156,4 @@ if __name__ == "__main__":
 
         return vars(parser.parse_args())
 
-    main(**parse_arguments())
+    dot(**parse_arguments())

@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from dot import main
+from dot import dot as main
 
 
 @contextlib.contextmanager
