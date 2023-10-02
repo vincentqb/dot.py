@@ -27,6 +27,16 @@ def root():
         yield root
 
 
+@pytest.mark.parametrize("command", ["link", "unlink"])
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_system_exit(root, command, dry_run):
+    home = root / "home"
+    profile = root / "not_a_profile"
+    with pytest.raises(SystemExit):
+        main(command=command, home=str(home), profiles=[str(profile)], dry_run=dry_run)
+    assert not (home / "not_a_profile").is_dir()
+
+
 def test_link_unlink_profile(root):
     home = root / "home"
     profile = root / "default"
@@ -47,16 +57,6 @@ def test_link_unlink_profile(root):
 
     main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
     assert not (home / ".bashrc").is_symlink()
-
-
-@pytest.mark.parametrize("command", ["link", "unlink"])
-@pytest.mark.parametrize("dry_run", [False, True])
-def test_system_exit(root, command, dry_run):
-    home = root / "home"
-    profile = root / "not_a_profile"
-    with pytest.raises(SystemExit):
-        main(command=command, home=str(home), profiles=[str(profile)], dry_run=dry_run)
-    assert not (home / "not_a_profile").is_dir()
 
 
 @pytest.mark.parametrize(
