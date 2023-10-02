@@ -2,6 +2,8 @@
 
 **dot.py** is a minimalist python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.6+**.
 
+![Tests](https://github.com/vincentqb/dot.py/actions/workflows/python-app.yml/badge.xml)
+
 ## Install
 
 Simply clone the repository.
