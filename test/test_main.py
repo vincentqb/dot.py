@@ -24,24 +24,17 @@ def root():
         root = Path(str(root))
         home = root / "home"
         home.mkdir(parents=True)
-
-        candidate = root / "another" / "bashrc"
-        candidate.parent.mkdir(parents=True)
-        with open(candidate, "w") as fp:
-            fp.write("set -o vi")
-
-        candidate = root / "default" / "env.template"
-        candidate.parent.mkdir(parents=True)
-
-        with open(candidate, "w") as fp:
-            fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
-
         yield root
 
 
 def test_link_unlink_profile(root):
     home = root / "home"
-    profile = root / "another"
+    profile = root / "default"
+    candidate = profile / "bashrc"
+
+    candidate.parent.mkdir(parents=True)
+    with open(candidate, "w") as fp:
+        fp.write("set -o vi")
 
     main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
     assert not (home / ".bashrc").is_symlink()
@@ -70,6 +63,11 @@ def test_link_unlink_template(root):
 
     home = root / "home"
     profile = root / "default"
+
+    candidate = profile / "env.template"
+    candidate.parent.mkdir(parents=True)
+    with open(candidate, "w") as fp:
+        fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
 
     with set_env(APP_SECRET_KEY="abc123"):
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
