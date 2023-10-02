@@ -8,6 +8,10 @@ from pathlib import Path
 from string import Template
 
 
+def get_env(key):
+    return os.environ.get(key, "False").lower() in ("true", "t", "1")
+
+
 def get_logger():
     class CallCounted:
         """Decorator to determine number of calls for a method"""
@@ -50,10 +54,6 @@ def get_logger():
     logger.addHandler(ch)
     logger.warning = CallCounted(logger.warning)  # Add counter for warnings
     return logger
-
-
-def get_env(key):
-    return os.environ.get(key, "False").lower() in ("true", "t", "1")
 
 
 def link(candidate, rendered, dotfile, dry_run, logger):
