@@ -55,28 +55,25 @@ def get_logger():
     return logger
 
 
+def render(candidate, rendered, _, dry_run, logger):
+    if get_env("DOT_RR"):
+        for subcandidate in sorted(candidate.glob("**/*.template")):
+            if subcandidate.is_file():
+                subrendered = re.sub(".template$", "", str(subcandidate))
+                render(subcandidate, subrendered, _, dry_run, logger)
+    if candidate != rendered:
+        if not dry_run:
+            with open(candidate, "r") as fr, open(rendered, "w") as fw:
+                content = Template(fr.read()).safe_substitute(os.environ)
+                fw.write(content)
+        logger.info(f"File {rendered} created.")
+
+
 def link(candidate, rendered, dotfile, dry_run, logger):
     """
     Link dotfiles to files in given profile directories.
     """
 
-    def render(candidate, rendered, dry_run, logger):
-        if candidate != rendered:
-            if not dry_run:
-                with open(candidate, "r") as fr, open(rendered, "w") as fw:
-                    content = Template(fr.read()).safe_substitute(os.environ)
-                    fw.write(content)
-            logger.info(f"File {rendered} created.")
-
-    # Create rendered files from template
-    if get_env("DOT_RR"):
-        for subcandidate in sorted(candidate.glob("**/*.template")):
-            if subcandidate.is_file():
-                subrendered = re.sub(".template$", "", str(subcandidate))
-                render(subcandidate, subrendered, dry_run, logger)
-    render(candidate, rendered, dry_run, logger)
-
-    # Create link
     if dotfile.exists():
         if dotfile.is_symlink():
             link = Path(os.readlink(str(dotfile))).expanduser().resolve()
@@ -92,7 +89,7 @@ def link(candidate, rendered, dotfile, dry_run, logger):
         logger.info(f"File {dotfile} created and linked to {rendered}")
 
 
-def unlink(candidate, rendered, dotfile, dry_run, logger):
+def unlink(_, rendered, dotfile, dry_run, logger):
     """
     Unlink dotfiles linked to files in given profile directories.
     """
@@ -111,6 +108,31 @@ def unlink(candidate, rendered, dotfile, dry_run, logger):
         logger.warning(f"File {dotfile} does not exists")
 
 
+def run(command, home, profiles, dry_run, logger):
+    home = Path(home).expanduser().resolve()
+    if home.is_dir():
+        for profile in profiles:
+            profile = Path(profile).expanduser().resolve()
+            if not profile.is_dir():
+                logger.warning(f"Profile {profile} does not exist")
+            for candidate in sorted(profile.glob("*")):
+                name = candidate.name
+                if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
+                    logger.debug(f"File {candidate} ignored.")
+                else:
+                    # Add dot prefix and replace template when needed
+                    if candidate.is_dir():
+                        rendered = candidate
+                        dotfile = home / ("." + name)
+                    else:
+                        rendered = candidate.parent / re.sub(".template$", ".rendered", name)
+                        dotfile = home / ("." + re.sub(".template$", "", name))
+                    for command_func in COMMANDS[command]:
+                        command_func(candidate, rendered, dotfile, dry_run, logger)
+    else:
+        logger.warning(f"Folder {home} does not exist")
+
+
 def dot(command, home, profiles, dry_run):
     """
     Manage links to dotfiles.
@@ -123,51 +145,25 @@ def dot(command, home, profiles, dry_run):
     else:
         logger.setLevel(logging.WARNING)
 
-    home = Path(home).expanduser().resolve()
-    command = COMMANDS[command]
-
-    def run(dry_run):
-        if home.is_dir():
-            for profile in profiles:
-                profile = Path(profile).expanduser().resolve()
-                if profile.is_dir():
-                    for candidate in sorted(profile.glob("*")):
-                        name = candidate.name
-                        if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
-                            logger.debug(f"File {candidate} ignored.")
-                        else:
-                            # Add dot prefix and replace template when needed
-                            if candidate.is_dir():
-                                rendered = candidate
-                                dotfile = home / ("." + name)
-                            else:
-                                rendered = candidate.parent / re.sub(".template$", ".rendered", name)
-                                dotfile = home / ("." + re.sub(".template$", "", name))
-                            command(candidate, rendered, dotfile, dry_run, logger)
-                else:
-                    logger.warning(f"Profile {profile} does not exist")
-        else:
-            logger.warning(f"Folder {home} does not exist")
-
-    run(dry_run=True)  # Dry run first
+    run(command, home, profiles, True, logger)  # Dry run first
 
     if logger.warning.counter > 0:
         logger.error("There were conflicts: exiting without changing dotfiles.")
         raise SystemExit()
 
     if not dry_run:
-        run(dry_run=dry_run)  # Wet run second
+        run(command, home, profiles, dry_run, logger)  # Wet run second
 
 
-COMMANDS = {"link": link, "unlink": unlink}
+COMMANDS = {"link": [render, link], "unlink": [unlink]}
 if __name__ == "__main__":
 
     def parse_arguments():
         parser = ArgumentParser(description=dot.__doc__)
         subparsers = parser.add_subparsers(dest="command", required=True)
 
-        for key, func in COMMANDS.items():
-            subparser = subparsers.add_parser(key, description=func.__doc__)
+        for key, funcs in COMMANDS.items():
+            subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
             subparser.add_argument("profiles", nargs="+")
             subparser.add_argument("--home", nargs="?", default="~")
             subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
