@@ -52,6 +52,10 @@ def get_logger():
     return logger
 
 
+def get_env(key):
+    return os.environ.get(key, "False").lower() in ("true", "t", "1")
+
+
 def link(candidate, rendered, dotfile, dry_run, logger):
     """
     Link dotfiles to files in given profile directories.
@@ -60,12 +64,12 @@ def link(candidate, rendered, dotfile, dry_run, logger):
     def render(candidate, rendered, dry_run, logger):
         if candidate != rendered:
             if not dry_run:
-                with open(candidate, "r"), open(rendered, "w") as (fr, fw):
+                with open(candidate, "r") as fr, open(rendered, "w") as fw:
                     content = Template(fr.read()).safe_substitute(os.environ)
                     fw.write(content)
             logger.info(f"File {rendered} created.")
 
-    if os.environ.get("DOT_RR", False):
+    if get_env("DOT_RR"):
         # Create rendered file for all templates within folder, if a folder
         for subcandidate in sorted(candidate.glob("**/*.template")):
             if subcandidate.is_file():
@@ -115,7 +119,7 @@ def dot(command, home, profiles, dry_run):
     Manage links to dotfiles.
     """
     logger = get_logger()
-    if os.environ.get("DOT_DEBUG", False):
+    if get_env("DOT_DEBUG"):
         logger.setLevel(logging.DEBUG)
     elif dry_run:
         logger.setLevel(logging.INFO)
