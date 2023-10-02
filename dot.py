@@ -119,7 +119,12 @@ def dot(command, home, profiles, dry_run):
     Manage links to dotfiles.
     """
     logger = get_logger()
-    logger.setLevel(logging.INFO if dry_run else logging.WARNING)
+    if os.environ.get("DOT_DEBUG", False):
+        logger.setLevel(logging.DEBUG)
+    elif dry_run:
+        logger.setLevel(logging.INFO)
+    else:
+        logger.setLevel(logging.WARNING)
 
     home = Path(home).expanduser().resolve()
     command = COMMANDS[command]
