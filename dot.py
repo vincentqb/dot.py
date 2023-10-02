@@ -120,10 +120,18 @@ def dot(command, home, profiles, dry_run):
                         name = candidate.name
                         if name.startswith("."):
                             logger.debug(f"File {candidate} ignored.")
-                        elif not name.endswith(".rendered"):
+                        elif name.endswith(".rendered") and candidate.is_dir():
+                            logger.debug(f"File {candidate} ignored.")
+                        elif name.endswith(".rendered"):
+                            pass
+                        else:
                             # Add dot prefix and replace template when needed
-                            rendered = candidate.parent / re.sub(".template$", ".rendered", name)
-                            dotfile = home / ("." + re.sub(".template$", "", name))
+                            if candidate.is_dir():
+                                rendered = candidate.parent / name
+                                dotfile = home / ("." + name)
+                            else:
+                                rendered = candidate.parent / re.sub(".template$", ".rendered", name)
+                                dotfile = home / ("." + re.sub(".template$", "", name))
                             command(candidate, rendered, dotfile, dry_run, logger)
                 else:
                     logger.warning(f"Profile {profile} does not exist")
