@@ -59,6 +59,44 @@ def test_system_exit(root, command, dry_run):
     assert not (home / "not_a_profile").is_dir()
 
 
+def test_link_unlink_template_recurse(root):
+
+    home = root / "home"
+    profile = root / "default"
+    target = home / "folder"
+
+    candidate = profile / "folder" / "env.template"
+    candidate.parent.mkdir(parents=True)
+    with open(candidate, "w") as fp:
+        fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
+
+    with set_env(APP_SECRET_KEY="abc123"):
+        main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
+        assert not (candidate.parent / "env").exists()
+        assert not (target / ".env").exists()
+        main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
+        if not (candidate.parent / "env").exists():
+            pytest.xfail("This test is known to fail: rendering is not done recursively.")
+        if not (target / ".env").exists():
+            pytest.xfail("This test is known to fail: rendering is not done recursively.")
+
+    with open(target / ".env", "r") as fp:
+        assert fp.read() == "export APP_SECRET_KEY=abc123"
+
+    main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
+    if not (candidate.parent / "env").exists():
+        pytest.xfail("This test is known to fail: rendering is not done recursively.")
+    if not (target / ".env").exists():
+        pytest.xfail("This test is known to fail: rendering is not done recursively.")
+
+    with open(target / ".env", "r") as fp:
+        assert fp.read() == "export APP_SECRET_KEY=abc123"
+
+    main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
+    assert (candidate.parent / "env").exists()
+    assert not (target / ".env").exists()
+
+
 @pytest.mark.parametrize("folder", ["", "folder"])
 def test_link_unlink_template(root, folder):
 
