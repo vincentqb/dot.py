@@ -56,11 +56,13 @@ def get_logger():
 
 
 def render(candidate, rendered, _, dry_run, logger):
-    if get_env("DOT_RR"):
-        for subcandidate in sorted(candidate.glob("**/*.template")):
-            if subcandidate.is_file():
-                subrendered = re.sub(".template$", "", str(subcandidate))
-                render(subcandidate, subrendered, _, dry_run, logger)
+    """
+    Render templates.
+    """
+    for subcandidate in sorted(candidate.glob("**/*.template")):
+        if get_env("DOT_RR") and subcandidate.is_file():
+            subrendered = re.sub(".template$", "", str(subcandidate))
+            render(subcandidate, subrendered, _, dry_run, logger)
     if candidate != rendered:
         if not dry_run:
             with open(candidate, "r") as fr, open(rendered, "w") as fw:
@@ -73,7 +75,6 @@ def link(candidate, rendered, dotfile, dry_run, logger):
     """
     Link dotfiles to files in given profile directories.
     """
-
     if dotfile.exists():
         if dotfile.is_symlink():
             link = Path(os.readlink(str(dotfile))).expanduser().resolve()
