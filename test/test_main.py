@@ -59,11 +59,14 @@ def test_system_exit(root, command, dry_run):
     assert not (home / "not_a_profile").is_dir()
 
 
-def test_link_unlink_template_recurse(root):
+def test_link_unlink_template_recursive(root):
+
+    if not os.environ.get("DOT_RR", False):
+            pytest.xfail("This test is known to fail: rendering is not done recursively.")
 
     home = root / "home"
     profile = root / "default"
-    target = home / "folder"
+    target = home / ".folder"
 
     candidate = profile / "folder" / "env.template"
     candidate.parent.mkdir(parents=True)
@@ -73,36 +76,30 @@ def test_link_unlink_template_recurse(root):
     with set_env(APP_SECRET_KEY="abc123"):
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
         assert not (candidate.parent / "env").exists()
-        assert not (target / ".env").exists()
+        assert not (target / "env").exists()
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
-        if not (candidate.parent / "env").exists():
-            pytest.xfail("This test is known to fail: rendering is not done recursively.")
-        if not (target / ".env").exists():
-            pytest.xfail("This test is known to fail: rendering is not done recursively.")
+        assert (candidate.parent / "env").exists()
+        assert (target / "env").exists()
 
-    with open(target / ".env", "r") as fp:
+    with open(target / "env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
 
     main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
-    if not (candidate.parent / "env").exists():
-        pytest.xfail("This test is known to fail: rendering is not done recursively.")
-    if not (target / ".env").exists():
-        pytest.xfail("This test is known to fail: rendering is not done recursively.")
+    assert (candidate.parent / "env").exists()
+    assert (target / "env").exists()
 
-    with open(target / ".env", "r") as fp:
+    with open(target / "env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
 
     main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
     assert (candidate.parent / "env").exists()
-    assert not (target / ".env").exists()
+    assert not (target / "env").exists()
 
 
-@pytest.mark.parametrize("folder", ["", "folder"])
-def test_link_unlink_template(root, folder):
+def test_link_unlink_template(root):
 
-    home = root / "home"
+    home = target = root / "home"
     profile = root / "default"
-    target = (home / folder) if folder else home
 
     candidate = profile / "env.template"
     candidate.parent.mkdir(parents=True)
@@ -115,16 +112,14 @@ def test_link_unlink_template(root, folder):
         assert not (target / ".env").is_symlink()
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
         assert (profile / "env.rendered").exists()
-        if not (target / ".env").is_symlink():
-            pytest.xfail("This test is known to fail: rendering is not done recursively.")
+        assert (target / ".env").is_symlink()
 
     with open(target / ".env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
 
     main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
     assert (profile / "env.rendered").exists()
-    if not (target / ".env").is_symlink():
-        pytest.xfail("This test is known to fail: rendering is not done recursively.")
+    assert (target / ".env").is_symlink()
 
     with open(target / ".env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"

@@ -57,7 +57,7 @@ def link(candidate, rendered, dotfile, dry_run, logger):
     Link dotfiles to files in given profile directories.
     """
 
-    if False:
+    if os.environ.get("DOT_RR", False):
         # Create rendered file for all templates within folder, if a folder
         if candidate.is_dir():
             for subcandidate in sorted(candidate.glob("**/*.template")):
