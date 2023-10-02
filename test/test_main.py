@@ -59,10 +59,14 @@ def test_system_exit(root, command, dry_run):
     assert not (home / "not_a_profile").is_dir()
 
 
-def test_link_unlink_template(root):
+@pytest.mark.parametrize("folder", ["", "folder/"])
+def test_link_unlink_template(root, folder):
+
+    if folder != "":
+        pytest.xfail()
 
     home = root / "home"
-    profile = root / "default"
+    profile = root / f"{folder}default"
 
     candidate = profile / "env.template"
     candidate.parent.mkdir(parents=True)
@@ -72,24 +76,24 @@ def test_link_unlink_template(root):
     with set_env(APP_SECRET_KEY="abc123"):
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
         assert not (profile / "env.rendered").exists()
-        assert not (home / ".env").is_symlink()
+        assert not (home / f"{folder}.env").is_symlink()
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
         assert (profile / "env.rendered").exists()
-        assert (home / ".env").is_symlink()
+        assert (home / f"{folder}.env").is_symlink()
 
     with open(home / ".env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
 
     main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
-    assert (home / ".env").is_symlink()
     assert (profile / "env.rendered").exists()
+    assert (home / f"{folder}.env").is_symlink()
 
     with open(home / ".env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
 
     main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
-    assert not (home / ".env").is_symlink()
     assert (profile / "env.rendered").exists()
+    assert not (home / f"{folder}.env").is_symlink()
 
 
 def test_link_template_folder(root):
