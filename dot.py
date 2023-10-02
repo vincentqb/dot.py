@@ -13,17 +13,6 @@ def get_env(key):
 
 
 def get_logger():
-    class CallCounted:
-        """Decorator to determine number of calls for a method"""
-
-        def __init__(self, method):
-            self.method = method
-            self.counter = 0
-
-        def __call__(self, *args, **kwargs):
-            self.counter += 1
-            return self.method(*args, **kwargs)
-
     class Formatter(logging.Formatter):
         GREY = "\x1b[38;20m"
         YELLOW = "\x1b[33;20m"
@@ -52,6 +41,16 @@ def get_logger():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
     logger.addHandler(ch)
+
+    class CallCounted:
+        def __init__(self, method):
+            self.method = method
+            self.counter = 0
+
+        def __call__(self, *args, **kwargs):
+            self.counter += 1
+            return self.method(*args, **kwargs)
+
     logger.warning = CallCounted(logger.warning)  # Add counter for warnings
     return logger
 
@@ -69,14 +68,12 @@ def link(candidate, rendered, dotfile, dry_run, logger):
                     fw.write(content)
             logger.info(f"File {rendered} created.")
 
+    # Create rendered files from template
     if get_env("DOT_RR"):
-        # Create rendered file for all templates within folder, if a folder
         for subcandidate in sorted(candidate.glob("**/*.template")):
             if subcandidate.is_file():
                 subrendered = re.sub(".template$", "", str(subcandidate))
                 render(subcandidate, subrendered, dry_run, logger)
-
-    # Create rendered file from template
     render(candidate, rendered, dry_run, logger)
 
     # Create link
