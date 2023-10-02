@@ -59,10 +59,14 @@ def test_system_exit(root, command, dry_run):
     assert not (home / "not_a_profile").is_dir()
 
 
-def test_link_unlink_template_recursive(root):
-
-    if not os.environ.get("DOT_RR", False):
-        pytest.xfail("This test is known to fail: rendering is not done recursively.")
+@pytest.mark.parametrize(
+    "dot_rr",
+    [
+        pytest.param(False, marks=pytest.mark.xfail(reason="Rendering is not done recursively.")),
+        True,
+    ],
+)
+def test_link_unlink_template_recursive(root, dot_rr):
 
     home = root / "home"
     profile = root / "default"
@@ -73,27 +77,28 @@ def test_link_unlink_template_recursive(root):
     with open(candidate, "w") as fp:
         fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
 
-    with set_env(APP_SECRET_KEY="abc123"):
-        main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
-        assert not (candidate.parent / "env").exists()
-        assert not (target / "env").exists()
-        main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
+    with set_env(DOT_RR=str(int(dot_rr))):
+        with set_env(APP_SECRET_KEY="abc123"):
+            main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
+            assert not (candidate.parent / "env").exists()
+            assert not (target / "env").exists()
+            main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
+            assert (candidate.parent / "env").exists()
+            assert (target / "env").exists()
+
+        with open(target / "env", "r") as fp:
+            assert fp.read() == "export APP_SECRET_KEY=abc123"
+
+        main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
         assert (candidate.parent / "env").exists()
         assert (target / "env").exists()
 
-    with open(target / "env", "r") as fp:
-        assert fp.read() == "export APP_SECRET_KEY=abc123"
+        with open(target / "env", "r") as fp:
+            assert fp.read() == "export APP_SECRET_KEY=abc123"
 
-    main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
-    assert (candidate.parent / "env").exists()
-    assert (target / "env").exists()
-
-    with open(target / "env", "r") as fp:
-        assert fp.read() == "export APP_SECRET_KEY=abc123"
-
-    main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
-    assert (candidate.parent / "env").exists()
-    assert not (target / "env").exists()
+        main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
+        assert (candidate.parent / "env").exists()
+        assert not (target / "env").exists()
 
 
 def test_link_unlink_template(root):
