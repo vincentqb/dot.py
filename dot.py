@@ -57,27 +57,23 @@ def link(candidate, rendered, dotfile, dry_run, logger):
     Link dotfiles to files in given profile directories.
     """
 
+    def render(candidate, rendered, dry_run, logger):
+        if candidate != rendered:
+            if not dry_run:
+                with open(candidate, "r"), open(rendered, "w") as (fr, fw):
+                    content = Template(fr.read()).safe_substitute(os.environ)
+                    fw.write(content)
+            logger.info(f"File {rendered} created.")
+
     if os.environ.get("DOT_RR", False):
         # Create rendered file for all templates within folder, if a folder
-        if candidate.is_dir():
-            for subcandidate in sorted(candidate.glob("**/*.template")):
-                if not subcandidate.is_dir():
-                    with open(subcandidate, "r") as fp:
-                        content = Template(fp.read()).safe_substitute(os.environ)
-                    subrendered = re.sub(".template$", "", str(subcandidate))
-                    if not dry_run:
-                        with open(subrendered, "w") as fp:
-                            fp.write(content)
-                    logger.info(f"File {subrendered} created.")
+        for subcandidate in sorted(candidate.glob("**/*.template")):
+            if subcandidate.is_file():
+                subrendered = re.sub(".template$", "", str(subcandidate))
+                render(subcandidate, subrendered, dry_run, logger)
 
     # Create rendered file from template
-    if candidate != rendered:
-        with open(candidate, "r") as fp:
-            content = Template(fp.read()).safe_substitute(os.environ)
-        if not dry_run:
-            with open(rendered, "w") as fp:
-                fp.write(content)
-        logger.debug(f"File {rendered} created.")
+    render(candidate, rendered, dry_run, logger)
 
     # Create link
     if dotfile.exists():
@@ -136,12 +132,12 @@ def dot(command, home, profiles, dry_run):
                 if profile.is_dir():
                     for candidate in sorted(profile.glob("*")):
                         name = candidate.name
-                        if name.startswith(".") or (name.endswith(".rendered") and not candidate.is_dir()):
+                        if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
                             logger.debug(f"File {candidate} ignored.")
                         else:
                             # Add dot prefix and replace template when needed
                             if candidate.is_dir():
-                                rendered = candidate.parent / name
+                                rendered = candidate
                                 dotfile = home / ("." + name)
                             else:
                                 rendered = candidate.parent / re.sub(".template$", ".rendered", name)
