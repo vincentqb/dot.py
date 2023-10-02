@@ -129,6 +129,22 @@ def test_link_unlink_template(root):
     assert not (target / ".env").is_symlink()
 
 
+def test_link_rendered_folder(root):
+
+    home = root / "home"
+    profile = root / "default"
+    candidate = profile / "folder.rendered" / "config"
+
+    candidate.parent.mkdir(parents=True)
+    with open(candidate, "w") as fp:
+        fp.write("set -o vi")
+
+    main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
+    assert not (home / ".folder.rendered").is_symlink()
+    main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
+    assert (home / ".folder.rendered").is_symlink()
+
+
 def test_link_template_folder(root):
 
     home = root / "home"

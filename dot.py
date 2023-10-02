@@ -131,12 +131,8 @@ def dot(command, home, profiles, dry_run):
                 if profile.is_dir():
                     for candidate in sorted(profile.glob("*")):
                         name = candidate.name
-                        if name.startswith("."):
+                        if name.startswith(".") or (name.endswith(".rendered") and not candidate.is_dir()):
                             logger.debug(f"File {candidate} ignored.")
-                        elif name.endswith(".rendered") and candidate.is_dir():
-                            logger.debug(f"File {candidate} ignored.")
-                        elif name.endswith(".rendered"):
-                            pass
                         else:
                             # Add dot prefix and replace template when needed
                             if candidate.is_dir():
