@@ -62,7 +62,7 @@ def test_system_exit(root, command, dry_run):
 def test_link_unlink_template_recursive(root):
 
     if not os.environ.get("DOT_RR", False):
-            pytest.xfail("This test is known to fail: rendering is not done recursively.")
+        pytest.xfail("This test is known to fail: rendering is not done recursively.")
 
     home = root / "home"
     profile = root / "default"
