@@ -114,22 +114,25 @@ def run(command, home, profiles, dry_run, logger):
     if home.is_dir():
         for profile in profiles:
             profile = Path(profile).expanduser().resolve()
-            if not profile.is_dir():
-                logger.warning(f"Profile {profile} does not exist")
-            for candidate in sorted(profile.glob("*")):
-                name = candidate.name
-                if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
-                    logger.debug(f"File {candidate} ignored.")
-                else:
-                    # Add dot prefix and replace template when needed
-                    if candidate.is_dir():
-                        rendered = candidate
-                        dotfile = home / ("." + name)
+            if profile.is_dir():
+                for candidate in sorted(profile.glob("*")):
+                    name = candidate.name
+                    if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
+                        logger.debug(f"File {candidate} ignored.")
                     else:
-                        rendered = candidate.parent / re.sub(".template$", ".rendered", name)
-                        dotfile = home / ("." + re.sub(".template$", "", name))
-                    for command_func in COMMANDS[command]:
-                        command_func(candidate, rendered, dotfile, dry_run, logger)
+                        # Add dot prefix and replace template when needed
+                        if candidate.is_dir():
+                            rendered = candidate
+                            dotfile = home / ("." + name)
+                        else:
+                            rendered = candidate.parent / re.sub(".template$", ".rendered", name)
+                            dotfile = home / ("." + re.sub(".template$", "", name))
+                        # Run user requested command
+                        for func in COMMAND[command]:
+                            func(candidate, rendered, dotfile, dry_run, logger)
+            else:
+                logger.warning(f"Profile {profile} does not exist")
+
     else:
         logger.warning(f"Folder {home} does not exist")
 
@@ -156,14 +159,14 @@ def dot(command, home, profiles, dry_run):
         run(command, home, profiles, dry_run, logger)  # Wet run second
 
 
-COMMANDS = {"link": [render, link], "unlink": [unlink]}
+COMMAND = {"link": [render, link], "unlink": [unlink]}
 if __name__ == "__main__":
 
     def parse_arguments():
         parser = ArgumentParser(description=dot.__doc__)
         subparsers = parser.add_subparsers(dest="command", required=True)
 
-        for key, funcs in COMMANDS.items():
+        for key, funcs in COMMAND.items():
             subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
             subparser.add_argument("profiles", nargs="+")
             subparser.add_argument("--home", nargs="?", default="~")
