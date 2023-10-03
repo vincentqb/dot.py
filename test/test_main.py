@@ -65,7 +65,6 @@ def test_link_unlink_profile(root):
     ],
 )
 def test_link_unlink_template_recursive(root, dot_rr):
-
     home = root / "home"
     profile = root / "default"
     target = home / ".folder"
@@ -100,7 +99,6 @@ def test_link_unlink_template_recursive(root, dot_rr):
 
 
 def test_link_unlink_template(root):
-
     home = target = root / "home"
     profile = root / "default"
 
@@ -133,7 +131,6 @@ def test_link_unlink_template(root):
 
 
 def test_link_rendered_folder(root):
-
     home = root / "home"
     profile = root / "default"
     candidate = profile / "folder.rendered" / "config"
@@ -149,7 +146,6 @@ def test_link_rendered_folder(root):
 
 
 def test_link_template_folder(root):
-
     home = root / "home"
     profile = root / "default"
     candidate = profile / "folder.template" / "config"
@@ -164,3 +160,23 @@ def test_link_template_folder(root):
     main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
     assert not (profile / "folder.rendered").exists()
     assert (home / ".folder.template").is_symlink()
+
+
+def test_home_error(root, caplog):
+    home = root / "not_a_home"
+    profile1 = root / "default"
+    profile2 = root / "another"
+
+    with pytest.raises(SystemExit):
+        main(command="link", home=str(home), profiles=[str(profile1), str(profile2)], dry_run=False)
+    assert len(caplog.records) == 2
+
+
+def test_profile_error(root, caplog):
+    home = root / "home"
+    profile1 = root / "default"
+    profile2 = root / "another"
+
+    with pytest.raises(SystemExit):
+        main(command="link", home=str(home), profiles=[str(profile1), str(profile2)], dry_run=False)
+    assert len(caplog.records) == 3
