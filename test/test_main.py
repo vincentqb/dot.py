@@ -1,6 +1,5 @@
 import contextlib
 import os
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -19,12 +18,11 @@ def set_env(**environ):
 
 
 @pytest.fixture
-def root():
-    with tempfile.TemporaryDirectory() as root:
-        root = Path(str(root))
-        home = root / "home"
-        home.mkdir(parents=True)
-        yield root
+def root(tmp_path):
+    root = Path(str(tmp_path))
+    home = root / "home"
+    home.mkdir(parents=True)
+    yield root
 
 
 @pytest.mark.parametrize("command", ["link", "unlink"])
