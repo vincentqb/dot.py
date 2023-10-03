@@ -30,8 +30,10 @@ def root(tmp_path):
 def test_system_exit_not_a_home(root, command, dry_run, caplog):
     home = root / "not_a_home"
     profile = root / "not_a_profile"
+
     with pytest.raises(SystemExit):
         main(command=command, home=str(home), profiles=[str(profile)], dry_run=dry_run)
+
     assert len(caplog.records) == 2  # TODO may wish to also show profile warnings
     assert not home.is_dir()
     assert not profile.is_dir()
@@ -42,8 +44,10 @@ def test_system_exit_not_a_home(root, command, dry_run, caplog):
 def test_system_exit_home(root, command, dry_run, caplog):
     home = root / "home"
     profile = root / "not_a_profile"
+
     with pytest.raises(SystemExit):
         main(command=command, home=str(home), profiles=[str(profile)], dry_run=dry_run)
+
     assert len(caplog.records) == 2
     assert not profile.is_dir()
 
@@ -81,17 +85,19 @@ def test_link_unlink_template_recursive(root, dot_rr):
     home = root / "home"
     profile = root / "default"
     target = home / ".folder"
-
     candidate = profile / "folder" / "env.template"
+
     candidate.parent.mkdir(parents=True)
     with open(candidate, "w") as fp:
         fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
 
     with set_env(DOT_RR=str(int(dot_rr))):
         with set_env(APP_SECRET_KEY="abc123"):
+
             main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
             assert not (candidate.parent / "env").exists()
             assert not (target / "env").exists()
+
             main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
             assert (candidate.parent / "env").exists()
             assert (target / "env").exists()
@@ -114,16 +120,18 @@ def test_link_unlink_template_recursive(root, dot_rr):
 def test_link_unlink_template(root):
     home = target = root / "home"
     profile = root / "default"
-
     candidate = profile / "env.template"
+
     candidate.parent.mkdir(parents=True)
     with open(candidate, "w") as fp:
         fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
 
     with set_env(APP_SECRET_KEY="abc123"):
+
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
         assert not (profile / "env.rendered").exists()
         assert not (target / ".env").is_symlink()
+
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
         assert (profile / "env.rendered").exists()
         assert (target / ".env").is_symlink()
@@ -154,6 +162,7 @@ def test_link_rendered_folder(root):
 
     main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
     assert not (home / ".folder.rendered").is_symlink()
+
     main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
     assert (home / ".folder.rendered").is_symlink()
 
@@ -170,6 +179,7 @@ def test_link_template_folder(root):
     main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
     assert not (profile / "folder.rendered").exists()
     assert not (home / ".folder.template").is_symlink()
+
     main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
     assert not (profile / "folder.rendered").exists()
     assert (home / ".folder.template").is_symlink()
