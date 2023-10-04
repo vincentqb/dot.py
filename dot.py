@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+"""
+Manage links to dotfiles.
+"""
 
 import logging
 import os
@@ -20,7 +23,6 @@ def get_logger():
         BOLD_RED = "\x1b[31;1m"
         RESET = "\x1b[0m"
         FORMAT = "%(message)s"
-
         formats = {
             logging.DEBUG: GREY + FORMAT + RESET,
             logging.INFO: GREY + FORMAT + RESET,
@@ -30,19 +32,18 @@ def get_logger():
         }
 
         def format(self, record):
-            format = self.formats.get(record.levelno)
-            formatter = logging.Formatter(format)
-            return formatter.format(record)
+            format_ = self.formats.get(record.levelno)
+            return logging.Formatter(format_).format(record)
 
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(Formatter())
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(Formatter())
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(ch)
+    logger.addHandler(handler)
 
-    class CallCounted:
+    class Counter:
         def __init__(self, method):
             self.method = method
             self.counter = 0
@@ -51,7 +52,7 @@ def get_logger():
             self.counter += 1
             return self.method(*args, **kwargs)
 
-    logger.warning = CallCounted(logger.warning)  # Add counter for warnings
+    logger.warning = Counter(logger.warning)
     return logger
 
 
@@ -65,23 +66,23 @@ def render(candidate, rendered, _, dry_run, logger):
             render(subcandidate, subrendered, _, dry_run, logger)
     if candidate != rendered:
         if not dry_run:
-            with open(candidate, "r") as fr, open(rendered, "w") as fw:
+            with open(candidate, "r", encoding="utf-8") as fr, open(rendered, "w", encoding="utf-8") as fw:
                 content = Template(fr.read()).safe_substitute(os.environ)
                 fw.write(content)
         logger.info(f"File {rendered} created.")
 
 
-def link(candidate, rendered, dotfile, dry_run, logger):
+def link(_, rendered, dotfile, dry_run, logger):
     """
     Link dotfiles to files in given profile directories.
     """
     if dotfile.exists():
         if dotfile.is_symlink():
-            link = Path(os.readlink(str(dotfile))).expanduser().resolve()
-            if link == rendered:
+            dotfile_link = Path(os.readlink(str(dotfile))).expanduser().resolve()
+            if dotfile_link == rendered:
                 logger.info(f"File {dotfile} links to {rendered} as expected")
             else:
-                logger.warning(f"File {dotfile} exists and points to {link} instead of {rendered}")
+                logger.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
         else:
             logger.warning(f"File {dotfile} exists but is not a link")
     else:
@@ -96,13 +97,13 @@ def unlink(_, rendered, dotfile, dry_run, logger):
     """
     if dotfile.exists():
         if dotfile.is_symlink():
-            link = Path(os.readlink(str(dotfile))).expanduser().resolve()
-            if link == rendered:
+            dotfile_link = Path(os.readlink(str(dotfile))).expanduser().resolve()
+            if dotfile_link == rendered:
                 if not dry_run:
                     dotfile.unlink()
                 logger.info(f"File {dotfile} unlinked from {rendered}")
             else:
-                logger.warning(f"File {dotfile} exists and points to {link} instead of {rendered}")
+                logger.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
         else:
             logger.warning(f"File {dotfile} exists but is not a link")
     else:
@@ -138,9 +139,6 @@ def run(command, home, profiles, dry_run, logger):
 
 
 def dot(command, home, profiles, dry_run):
-    """
-    Manage links to dotfiles.
-    """
     logger = get_logger()
     if get_env("DOT_DEBUG"):
         logger.setLevel(logging.DEBUG)
@@ -163,7 +161,7 @@ COMMAND = {"link": [render, link], "unlink": [unlink]}
 if __name__ == "__main__":
 
     def parse_arguments():
-        parser = ArgumentParser(description=dot.__doc__)
+        parser = ArgumentParser(description=__doc__)
         subparsers = parser.add_subparsers(dest="command", required=True)
 
         for key, funcs in COMMAND.items():
