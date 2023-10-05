@@ -133,7 +133,6 @@ def run(command, home, profiles, dry_run, logger):
                             func(candidate, rendered, dotfile, dry_run, logger)
             else:
                 logger.warning(f"Profile {profile} does not exist")
-
     else:
         logger.warning(f"Folder {home} does not exist")
 
