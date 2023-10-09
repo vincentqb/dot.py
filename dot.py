@@ -12,7 +12,7 @@ from string import Template
 
 
 def get_env(key):
-    return os.environ.get(key, "False").lower() in ("true", "t", "1")
+    return os.environ.get(key, "false").lower() in ("true", "t", "1")
 
 
 def get_logger():
