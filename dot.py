@@ -69,8 +69,7 @@ def render(candidate, rendered, _, dry_run, logger):
     if candidate != rendered:
         if not dry_run:
             with open(candidate, "r", encoding="utf-8") as fr, open(rendered, "w", encoding="utf-8") as fw:
-                content = Template(fr.read()).safe_substitute(os.environ)
-                fw.write(content)
+                fw.write(Template(fr.read()).safe_substitute(os.environ))
         logger.info(f"File {rendered} created.")
 
 
