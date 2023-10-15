@@ -1,5 +1,6 @@
 import contextlib
 import os
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -171,3 +172,38 @@ def test_link_template_folder(root):
     main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
     assert not (profile / "folder.rendered").exists()
     assert (home / ".folder.template").is_symlink()
+
+
+@pytest.mark.parametrize("command", ["link", "unlink"])
+@pytest.mark.parametrize("home_folder", ["home", "not_a_home"])
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_error_code_cli(root, command, home_folder, dry_run):
+    home = root / home_folder
+    profile = root / "not_a_profile"
+
+    error_code = subprocess.call(
+        [
+            "./dot.py",
+            command,
+            str(home),
+            str(profile),
+            "dry_run",
+            f"--{'' if dry_run else 'no-'}dry-run",
+        ]
+    )
+
+    assert error_code == 1
+    assert home.is_dir() != (home_folder != "home")
+    assert not profile.is_dir()
+
+
+@pytest.mark.parametrize("command", ["", "link", "unlink"])
+def test_error_code_help_cli(root, command):
+    error_code = subprocess.call(["./dot.py"] + ([command] if command else []) + ["-h"])
+    assert error_code == 0
+
+
+@pytest.mark.parametrize("command", ["", "link", "unlink"])
+def test_error_code_missing_cli(root, command):
+    error_code = subprocess.call(["./dot.py"] + ([command] if command else []))
+    assert error_code == 2
