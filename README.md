@@ -66,4 +66,4 @@ Values which need to be set in a file when dot.py is run can be placed in a temp
 
 Run tests with `python3 -m pytest` from the root of the repository.
 
-![Lint and Test](https://github.com/vincentqb/dot.py/actions/workflows/python-app.yml/badge.svg)
+![Test and Build](https://github.com/vincentqb/dot.py/actions/workflows/python-app.yml/badge.svg)
