@@ -187,7 +187,6 @@ def test_error_code_cli(root, command, home_folder, dry_run):
             command,
             str(home),
             str(profile),
-            "dry_run",
             f"--{'' if dry_run else 'no-'}dry-run",
         ]
     )
