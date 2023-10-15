@@ -68,8 +68,10 @@ def render(candidate, rendered, _, dry_run, logger):
             render(subcandidate, subrendered, _, dry_run, logger)
     if candidate != rendered:
         if not dry_run:
-            with open(candidate, "r", encoding="utf-8") as fr, open(rendered, "w", encoding="utf-8") as fw:
-                fw.write(Template(fr.read()).safe_substitute(os.environ))
+            with open(candidate, "r", encoding="utf-8") as candidate_file:
+                with open(rendered, "w", encoding="utf-8") as rendered_file:
+                    content = Template(candidate_file.read()).safe_substitute(os.environ)
+                    rendered_file.write(content)
         logger.info(f"File {rendered} created.")
 
 
@@ -157,21 +159,20 @@ def dot(command, home, profiles, dry_run):
         run(command, home, profiles, dry_run, logger)  # Wet run second
 
 
-def parse_arguments():
-    parser = ArgumentParser(description=__doc__)
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    for key, funcs in COMMAND.items():
-        subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
-        subparser.add_argument("profiles", nargs="+")
-        subparser.add_argument("--home", nargs="?", default="~")
-        subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
-        subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
-
-    return vars(parser.parse_args())
-
-
 def main():
+    def parse_arguments():
+        parser = ArgumentParser(description=__doc__)
+        subparsers = parser.add_subparsers(dest="command", required=True)
+
+        for key, funcs in COMMAND.items():
+            subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
+            subparser.add_argument("profiles", nargs="+")
+            subparser.add_argument("--home", nargs="?", default="~")
+            subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
+            subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
+
+        return vars(parser.parse_args())
+
     dot(**parse_arguments())
 
 
