@@ -14,7 +14,7 @@ only-include = ["dot.py", "_dot.py"]
 
 [project]
 name = "dot.py"
-version = "1.0.0"
+version = "1.1.0"
 authors = [
   { name="Vincent QB", email="vincentqb@gmail.com" },
 ]
