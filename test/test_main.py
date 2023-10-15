@@ -26,29 +26,17 @@ def root(tmp_path):
 
 
 @pytest.mark.parametrize("command", ["link", "unlink"])
+@pytest.mark.parametrize("home_folder", ["home", "not_a_home"])
 @pytest.mark.parametrize("dry_run", [False, True])
-def test_system_exit_not_a_home(root, command, dry_run, caplog):
-    home = root / "not_a_home"
+def test_system_exit(root, command, home_folder, dry_run, caplog):
+    home = root / home_folder
     profile = root / "not_a_profile"
 
     with pytest.raises(SystemExit):
         main(command=command, home=str(home), profiles=[str(profile)], dry_run=dry_run)
 
     assert len(caplog.records) == 2  # TODO may wish to also show profile warnings
-    assert not home.is_dir()
-    assert not profile.is_dir()
-
-
-@pytest.mark.parametrize("command", ["link", "unlink"])
-@pytest.mark.parametrize("dry_run", [False, True])
-def test_system_exit_home(root, command, dry_run, caplog):
-    home = root / "home"
-    profile = root / "not_a_profile"
-
-    with pytest.raises(SystemExit):
-        main(command=command, home=str(home), profiles=[str(profile)], dry_run=dry_run)
-
-    assert len(caplog.records) == 2
+    assert home.is_dir() != (home_folder != "home")
     assert not profile.is_dir()
 
 
