@@ -2,12 +2,18 @@
 
 **dot.py** is a minimalist python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.6+**.
 
-## Install
+## Install and Help
 
-Simply clone the repository.
+You can simply clone the repository and call with `~/dot.py/dot.py -h`:
 
 ```sh
 git clone https://github.com/vincentqb/dot.py ~/dot.py
+```
+
+Alternatively, you can install with pip and call with `dot.py -h`:
+
+```sh
+pip install dot.py
 ```
 
 ## Quick Start
