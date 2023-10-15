@@ -8,6 +8,9 @@ only-include = ["dot.py"]
 [tool.hatch.build.targets.wheel.sources]
 "src" = "dot.py"
 
+[project.scripts]
+"dot" = "dot:main"
+
 [project]
 name = "dot.py"
 version = "1.0.0"

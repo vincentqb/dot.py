@@ -10,6 +10,8 @@ from argparse import ArgumentParser
 from pathlib import Path
 from string import Template
 
+__all__ = ["dot"]
+
 
 def get_env(key):
     return os.environ.get(key, "false").lower() in ("true", "t", "1")
@@ -156,20 +158,24 @@ def dot(command, home, profiles, dry_run):
         run(command, home, profiles, dry_run, logger)  # Wet run second
 
 
+def parse_arguments():
+    parser = ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    for key, funcs in COMMAND.items():
+        subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
+        subparser.add_argument("profiles", nargs="+")
+        subparser.add_argument("--home", nargs="?", default="~")
+        subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
+        subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
+
+    return vars(parser.parse_args())
+
+
+def main():
+    dot(**parse_arguments())
+
+
 COMMAND = {"link": [render, link], "unlink": [unlink]}
 if __name__ == "__main__":
-
-    def parse_arguments():
-        parser = ArgumentParser(description=__doc__)
-        subparsers = parser.add_subparsers(dest="command", required=True)
-
-        for key, funcs in COMMAND.items():
-            subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
-            subparser.add_argument("profiles", nargs="+")
-            subparser.add_argument("--home", nargs="?", default="~")
-            subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
-            subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
-
-        return vars(parser.parse_args())
-
-    dot(**parse_arguments())
+    main()
