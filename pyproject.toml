@@ -8,6 +8,10 @@ only-include = ["dot.py", "_dot.py"]
 [project.scripts]
 "dot.py" = "_dot:main"
 
+[project.urls]
+"Homepage" = "https://github.com/vincentqb/dot.py/"
+"Bug Tracker" = "https://github.com/vincentqb/dot.py/"
+
 [project]
 name = "dot.py"
 version = "1.0.0"
@@ -21,7 +25,3 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
 ]
-
-[project.urls]
-"Homepage" = "https://github.com/vincentqb/dot.py/"
-"Bug Tracker" = "https://github.com/vincentqb/dot.py/"
