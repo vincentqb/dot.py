@@ -4,16 +4,18 @@
 
 ## Install and Help
 
-You can simply clone the repository and call with `~/dot.py/dot.py -h`:
+You can simply clone the repository:
 
 ```sh
 git clone https://github.com/vincentqb/dot.py ~/dot.py
+~/dot.py/dot.py -h
 ```
 
-Alternatively, you can install with pip and call with `dot.py -h`:
+Alternatively, you can install with pip:
 
 ```sh
 pip install dot.py
+dot.py -h
 ```
 
 ## Quick Start
