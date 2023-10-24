@@ -17,7 +17,7 @@ def get_env(key):
     return os.environ.get(key, "false").lower() in ("true", "t", "1")
 
 
-def get_logger():
+def get_logger(dry_run):
     class Formatter(logging.Formatter):
         GREY = "\x1b[38;20m"
         YELLOW = "\x1b[33;20m"
@@ -37,12 +37,19 @@ def get_logger():
             format_ = self.formats.get(record.levelno)
             return logging.Formatter(format_).format(record)
 
+    if get_env("DOT_DEBUG"):
+        level = logging.DEBUG
+    elif dry_run:
+        level = logging.INFO
+    else:
+        level = logging.WARNING
+
     handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
+    handler.setLevel(level)
     handler.setFormatter(Formatter())
 
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(level)
     logger.addHandler(handler)
 
     class Counter:
@@ -141,13 +148,7 @@ def run(command, home, profiles, dry_run, logger):
 
 
 def dot(command, home, profiles, dry_run):
-    logger = get_logger()
-    if get_env("DOT_DEBUG"):
-        logger.setLevel(logging.DEBUG)
-    elif dry_run:
-        logger.setLevel(logging.INFO)
-    else:
-        logger.setLevel(logging.WARNING)
+    logger = get_logger(dry_run)
 
     run(command, home, profiles, True, logger)  # Dry run first
 
