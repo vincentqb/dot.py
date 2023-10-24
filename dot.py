@@ -70,10 +70,10 @@ def render_recurse(candidate, rendered, _, dry_run, logger):
         for subcandidate in sorted(candidate.glob("**/*.template")):
             if subcandidate.is_file():
                 subrendered = re.sub(".template$", "", str(subcandidate))
-                render(subcandidate, subrendered, _, dry_run, logger)
+                render_single(subcandidate, subrendered, _, dry_run, logger)
 
 
-def render(candidate, rendered, _, dry_run, logger):
+def render_single(candidate, rendered, _, dry_run, logger):
     """
     Render templates.
     """
@@ -153,7 +153,6 @@ def run(command, home, profiles, dry_run, logger):
 
 def dot(command, home, profiles, dry_run):
     logger = get_logger(dry_run)
-
     run(command, home, profiles, True, logger)  # Dry run first
 
     if logger.warning.counter > 0:
@@ -181,6 +180,6 @@ def main():
     dot(**parse_arguments())
 
 
-COMMAND = {"link": [render_recurse, render, link], "unlink": [unlink]}
+COMMAND = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
 if __name__ == "__main__":
     main()
