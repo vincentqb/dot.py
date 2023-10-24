@@ -1,3 +1,3 @@
 import sys
 sys.path.pop(0)
-from dot import main
+from dot import dot_from_args
