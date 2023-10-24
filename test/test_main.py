@@ -119,10 +119,12 @@ def test_link_unlink_template(root):
 
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
         assert not (profile / "env.rendered").exists()
+        assert not (target / ".env.rendered").exists()
         assert not (target / ".env").is_symlink()
 
         main(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
         assert (profile / "env.rendered").exists()
+        assert not (target / ".env.rendered").exists()
         assert (target / ".env").is_symlink()
 
     with open(target / ".env", "r") as fp:
@@ -130,6 +132,7 @@ def test_link_unlink_template(root):
 
     main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
     assert (profile / "env.rendered").exists()
+    assert not (target / ".env.rendered").exists()
     assert (target / ".env").is_symlink()
 
     with open(target / ".env", "r") as fp:
@@ -137,6 +140,7 @@ def test_link_unlink_template(root):
 
     main(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
     assert (profile / "env.rendered").exists()
+    assert not (target / ".env.rendered").exists()
     assert not (target / ".env").is_symlink()
 
 
