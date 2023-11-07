@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 only-include = ["dot.py", "_dot.py"]
 
 [project.scripts]
-"dot.py" = "_dot:dot_from_args"
+"dot.py" = "_dot:main"
 
 [project.urls]
 "Homepage" = "https://github.com/vincentqb/dot.py/"
