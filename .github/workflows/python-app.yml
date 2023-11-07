@@ -38,6 +38,12 @@ jobs:
     - name: Build
       run: |
         python -m build
+    - name: Install
+      run: |
+        pip install dist/*.whl
+    - name: Test help
+      run: |
+        dot.py -h 1> /dev/null
 
   publish:
     name: Publish
