@@ -82,7 +82,6 @@ def test_link_unlink_template_recursive(root, dot_rr):
 
     with set_env(DOT_RR=str(int(dot_rr))):
         with set_env(APP_SECRET_KEY="abc123"):
-
             dot(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
             assert not (candidate.parent / "env").exists()
             assert not (target / "env").exists()
@@ -116,7 +115,6 @@ def test_link_unlink_template(root):
         fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
 
     with set_env(APP_SECRET_KEY="abc123"):
-
         dot(command="link", home=str(home), profiles=[str(profile)], dry_run=True)
         assert not (profile / "env.rendered").exists()
         assert not (target / ".env.rendered").exists()
