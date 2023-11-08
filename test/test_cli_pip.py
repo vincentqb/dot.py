@@ -1,8 +1,21 @@
 import subprocess
+from pathlib import Path
 
 import pytest
 
+def is_not_tool(name):
+    """Check whether `name` is on PATH and marked as executable."""
 
+    # from whichcraft import which
+    from shutil import which
+
+    return which(name) is None
+
+
+cli = "dot.py"
+
+
+@pytest.mark.skipif(is_not_tool(cli), reason=f"{cli} not available")
 @pytest.mark.parametrize("command", ["link", "unlink"])
 @pytest.mark.parametrize("home_folder", ["home", "not_a_home"])
 @pytest.mark.parametrize("dry_run", [False, True])
@@ -12,7 +25,7 @@ def test_error_code_cli(root, command, home_folder, dry_run):
 
     error_code = subprocess.call(
         [
-            "./dot.py",
+            cli,
             command,
             str(home),
             str(profile),
@@ -25,13 +38,15 @@ def test_error_code_cli(root, command, home_folder, dry_run):
     assert not profile.is_dir()
 
 
+@pytest.mark.skipif(is_not_tool(cli), reason=f"{cli} not available")
 @pytest.mark.parametrize("command", ["", "link", "unlink"])
 def test_error_code_help_cli(root, command):
-    error_code = subprocess.call(["./dot.py"] + ([command] if command else []) + ["-h"])
+    error_code = subprocess.call([cli] + ([command] if command else []) + ["-h"])
     assert error_code == 0
 
 
+@pytest.mark.skipif(is_not_tool(cli), reason=f"{cli} not available")
 @pytest.mark.parametrize("command", ["", "link", "unlink"])
 def test_error_code_missing_cli(root, command):
-    error_code = subprocess.call(["./dot.py"] + ([command] if command else []))
+    error_code = subprocess.call([cli] + ([command] if command else []))
     assert error_code == 2

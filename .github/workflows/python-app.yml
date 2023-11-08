@@ -34,16 +34,20 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
         # Check also with ruff
         ruff check .
-    - name: Test
+    - name: Test in place
       run: |
         python -m pytest
-    - name: Build
+    - name: Build with build
       run: |
         python -m build
-    - name: Test Install
+    - name: Build with pip
       run: |
-        pip install dist/*.whl
-        dot.py -h 1> /dev/null
+        pip install .
+    - name: Test as package
+      run: |
+        cd test
+        python -m pytest
+        cd ..
 
   publish:
     name: Publish
