@@ -1,7 +1,7 @@
 import pytest
-from dot import dot
+from conftest import set_env
 
-from utils import root, set_env
+from dot import dot
 
 
 @pytest.mark.parametrize("command", ["link", "unlink"])

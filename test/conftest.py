@@ -1,7 +1,8 @@
 import contextlib
 import os
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 @contextlib.contextmanager

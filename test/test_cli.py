@@ -1,7 +1,6 @@
-import pytest
 import subprocess
 
-from utils import root
+import pytest
 
 
 @pytest.mark.parametrize("command", ["link", "unlink"])
