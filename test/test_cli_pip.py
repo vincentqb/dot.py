@@ -1,16 +1,7 @@
 import subprocess
-from pathlib import Path
 
 import pytest
-
-def is_not_tool(name):
-    """Check whether `name` is on PATH and marked as executable."""
-
-    # from whichcraft import which
-    from shutil import which
-
-    return which(name) is None
-
+from conftest import is_not_tool
 
 cli = "dot.py"
 

@@ -1,8 +1,14 @@
 import contextlib
 import os
 from pathlib import Path
+from shutil import which
 
 import pytest
+
+
+def is_not_tool(name):
+    """Check whether `name` is on PATH and marked as executable."""
+    return which(name) is None
 
 
 @contextlib.contextmanager
