@@ -36,7 +36,7 @@ jobs:
         ruff check .
     - name: Test in place
       run: |
-        python -m pytest
+        python -m pytest -v
     - name: Build with build
       run: |
         python -m build
@@ -46,7 +46,7 @@ jobs:
     - name: Test as package
       run: |
         cd test
-        python -m pytest
+        python -m pytest -v
         cd ..
 
   publish:

@@ -44,7 +44,7 @@ def test_link_unlink_profile(root):
 @pytest.mark.parametrize(
     "dot_rr",
     [
-        pytest.param(False, marks=pytest.mark.xfail(reason="Rendering is not done recursively.")),
+        pytest.param(False, marks=pytest.mark.xfail(reason="Recursive rendering is not enabled.")),
         True,
     ],
 )
