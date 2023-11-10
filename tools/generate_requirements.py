@@ -3,6 +3,7 @@
 Generate requirements/*.txt files from pyproject.toml.
 https://github.com/pypa/pip/issues/11440#issuecomment-1791049862
 """
+from __future__ import annotations
 
 import sys
 from pathlib import Path
