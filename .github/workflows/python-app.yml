@@ -24,10 +24,11 @@ jobs:
         python-version: "3.8"
     - name: Generate requirements files
       run: |
+        python -m pip install --upgrade pip
+        pip install tomli
         python tools/generate_requirements.py
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
         pip install -r requirements/build.txt
         pip install -r requirements/test.txt
         pip install -r requirements/lint.txt
@@ -72,10 +73,11 @@ jobs:
         python-version: "3.8"
     - name: Generate requirements files
       run: |
+        python -m pip install --upgrade pip
+        pip install tomli
         python tools/generate_requirements.py
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
         pip install -r requirements/build.txt
     - name: Build
       run: |
