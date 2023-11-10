@@ -28,6 +28,7 @@ header = [
 def generate_requirement_file(name: str, req_list: list[str]) -> None:
     if req_list:
         req_fname = repo_dir / "requirements" / f"{name}.txt"
+        req_fname.parent.mkdir(parents=True, exist_ok=True)
         req_fname.write_text("\n".join(header + req_list) + "\n")
 
 
