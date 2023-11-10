@@ -22,10 +22,15 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.8"
+    - name: Generate requirements files
+      run: |
+        python tools/generate_requirements.txt
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 ruff pytest build
+        pip install -r requirements/build.txt
+        pip install -r requirements/test.txt
+        pip install -r requirements/lint.txt
     - name: Lint
       run: |
         # Stop the build if there are Python syntax errors or undefined names.
@@ -65,10 +70,13 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.8"
+    - name: Generate requirements files
+      run: |
+        python tools/generate_requirements.txt
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install build
+        pip install -r requirements/build.txt
     - name: Build
       run: |
         python -m build
