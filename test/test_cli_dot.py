@@ -5,8 +5,12 @@ from conftest import is_not_tool
 
 
 def skipif(cli):
-    return pytest.param(cli, marks=pytest.mark.skipif(
-        is_not_tool(cli), reason=f"{cli} not available"
+    return pytest.param(
+        cli,
+        marks=pytest.mark.skipif(
+            is_not_tool(cli),
+            reason=f"{cli} not available",
+        )
     )
 
                     
