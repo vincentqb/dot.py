@@ -41,13 +41,7 @@ def test_link_unlink_profile(root):
     assert not (home / ".bashrc").is_symlink()
 
 
-@pytest.mark.parametrize(
-    "dot_rr",
-    [
-        pytest.param(False, marks=pytest.mark.xfail(reason="Recursive rendering is not enabled.")),
-        True,
-    ],
-)
+@pytest.mark.parametrize("dot_rr", [False, True])
 def test_link_unlink_template_recursive(root, dot_rr):
     home = root / "home"
     profile = root / "default"
@@ -65,21 +59,23 @@ def test_link_unlink_template_recursive(root, dot_rr):
             assert not (target / "env").exists()
 
             dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False)
-            assert (candidate.parent / "env").exists()
-            assert (target / "env").exists()
+            assert (not dot_rr) != (candidate.parent / "env").exists()
+            assert (not dot_rr) != (target / "env").exists()
 
-        with open(target / "env", "r") as fp:
-            assert fp.read() == "export APP_SECRET_KEY=abc123"
+        if dot_rr:
+            with open(target / "env", "r") as fp:
+                assert fp.read() == "export APP_SECRET_KEY=abc123"
 
         dot(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True)
-        assert (candidate.parent / "env").exists()
-        assert (target / "env").exists()
+        assert (not dot_rr) != (candidate.parent / "env").exists()
+        assert (not dot_rr) != (target / "env").exists()
 
-        with open(target / "env", "r") as fp:
-            assert fp.read() == "export APP_SECRET_KEY=abc123"
+        if dot_rr:
+            with open(target / "env", "r") as fp:
+                assert fp.read() == "export APP_SECRET_KEY=abc123"
 
         dot(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False)
-        assert (candidate.parent / "env").exists()
+        assert (not dot_rr) != (candidate.parent / "env").exists()
         assert not (target / "env").exists()
 
 
