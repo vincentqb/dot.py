@@ -51,7 +51,7 @@ jobs:
         pip install .
     - name: Test as package
       run: |
-        cd test
+        cd tests
         python -m pytest -v
         cd ..
 
