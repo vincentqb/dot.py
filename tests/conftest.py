@@ -7,8 +7,20 @@ import pytest
 
 
 def is_not_tool(name):
-    """Check whether `name` is on PATH and marked as executable."""
+    """
+    Return False if on PATH and marked as executable.
+    """
     return which(name) is None
+
+
+def skipif_not_available(cli):
+    return pytest.param(
+        cli,
+        marks=pytest.mark.skipif(
+            is_not_tool(cli),
+            reason=f"{cli} not available",
+        ),
+    )
 
 
 @contextlib.contextmanager

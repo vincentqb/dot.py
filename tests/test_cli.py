@@ -1,20 +1,10 @@
 import subprocess
 
 import pytest
-from conftest import is_not_tool
+from conftest import skipif_not_available
 
 
-def skipif(cli):
-    return pytest.param(
-        cli,
-        marks=pytest.mark.skipif(
-            is_not_tool(cli),
-            reason=f"{cli} not available",
-        )
-    )
-
-                    
-@pytest.mark.parametrize("cli", [skipif("dot.py"), skipif("./dot.py")])
+@pytest.mark.parametrize("cli", [skipif_not_available("dot.py"), skipif_not_available("./dot.py")])
 @pytest.mark.parametrize("command", ["link", "unlink"])
 @pytest.mark.parametrize("home_folder", ["home", "not_a_home"])
 @pytest.mark.parametrize("dry_run", [False, True])
@@ -37,14 +27,14 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
     assert not profile.is_dir()
 
 
-@pytest.mark.parametrize("cli", [skipif("dot.py"), skipif("./dot.py")])
+@pytest.mark.parametrize("cli", [skipif_not_available("dot.py"), skipif_not_available("./dot.py")])
 @pytest.mark.parametrize("command", ["", "link", "unlink"])
 def test_error_code_help_cli(cli, root, command):
     error_code = subprocess.call([cli] + ([command] if command else []) + ["-h"])
     assert error_code == 0
 
 
-@pytest.mark.parametrize("cli", [skipif("dot.py"), skipif("./dot.py")])
+@pytest.mark.parametrize("cli", [skipif_not_available("dot.py"), skipif_not_available("./dot.py")])
 @pytest.mark.parametrize("command", ["", "link", "unlink"])
 def test_error_code_missing_cli(cli, root, command):
     error_code = subprocess.call([cli] + ([command] if command else []))
