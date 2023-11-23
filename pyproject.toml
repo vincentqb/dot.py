@@ -20,7 +20,6 @@ test = [
     "pytest",
 ]
 lint = [
-    "flake8",
     "ruff",
 ]
 
@@ -40,3 +39,6 @@ only-include = ["dot.py", "_dot.py"]
 
 [tool.ruff]
 line-length = 120
+
+[tool.ruff.lint]
+extend-select = ["C901"]
