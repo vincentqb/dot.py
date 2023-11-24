@@ -35,20 +35,15 @@ jobs:
     - name: Lint
       run: |
         ruff .
-    - name: Test in place
-      run: |
-        python -m pytest -v
-    - name: Build with build
-      run: |
-        python -m build
     - name: Build with pip
       run: |
         pip install .
-    - name: Test as package
+    - name: Test
       run: |
-        cd tests
-        python -m pytest -v
-        cd ..
+        python -m pytest
+    - name: Build with build
+      run: |
+        python -m build
 
   publish:
     name: Publish
