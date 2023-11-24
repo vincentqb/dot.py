@@ -35,7 +35,7 @@ jobs:
         python -m build
     - name: Install
       run: |
-        pip install sdist/*.whl
+        pip install dist/*.whl
     - name: Lint
       run: |
         ruff .
