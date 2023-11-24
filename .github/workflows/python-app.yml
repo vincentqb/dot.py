@@ -22,28 +22,26 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.8"
-    - name: Generate requirements files
+    - name: Upgrade pip
       run: |
         python -m pip install --upgrade pip
         pip install tomli
         python tools/generate_requirements.py
-    - name: Install dependencies
-      run: |
         pip install -r requirements/build.txt
-        pip install -r requirements/test.txt
         pip install -r requirements/lint.txt
+        pip install -r requirements/test.txt
+    - name: Build
+      run: |
+        python -m build
+    - name: Install
+      run: |
+        pip install sdist/*.whl
     - name: Lint
       run: |
         ruff .
-    - name: Build with pip
-      run: |
-        pip install .
     - name: Test
       run: |
         python -m pytest
-    - name: Build with build
-      run: |
-        python -m build
 
   publish:
     name: Publish
@@ -61,13 +59,10 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.8"
-    - name: Generate requirements files
-      run: |
+    - name: Install dependencies
         python -m pip install --upgrade pip
         pip install tomli
         python tools/generate_requirements.py
-    - name: Install dependencies
-      run: |
         pip install -r requirements/build.txt
     - name: Build
       run: |
