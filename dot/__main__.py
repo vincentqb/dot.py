@@ -22,3 +22,7 @@ def parse_args():
 
 def dot_from_args():
     dot(**parse_args())
+
+
+if __name__ == "__main__":
+    dot_from_args()
