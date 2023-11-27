@@ -1,14 +1,9 @@
 import logging
 
-from .utils import get_env
+from .utils import BOLD_RED, GREY, RED, RESET, YELLOW, get_env
 
 
 class ColoredFormatter(logging.Formatter):
-    GREY = "\x1b[38;20m"
-    YELLOW = "\x1b[33;20m"
-    RED = "\x1b[31;20m"
-    BOLD_RED = "\x1b[31;1m"
-    RESET = "\x1b[0m"
     FORMAT = "%(message)s"
     formats = {
         logging.DEBUG: GREY + FORMAT + RESET,
