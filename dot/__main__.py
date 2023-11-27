@@ -4,7 +4,6 @@ Manage links to dotfiles.
 
 import sys
 from argparse import ArgumentParser
-from gettext import gettext
 
 from dot import dot
 from dot.command import COMMAND
@@ -15,12 +14,12 @@ class ColoredArgumentParser(ArgumentParser):
     def print_usage(self, file=None):
         if file is None:
             file = sys.stdout
-        self._print_message(self.format_usage()[0].upper() + self.format_usage()[1:], file, YELLOW)
+        self._print_message(self.format_usage(), file, YELLOW)
 
     def print_help(self, file=None):
         if file is None:
             file = sys.stdout
-        self._print_message(self.format_help()[0].upper() + self.format_help()[1:], file, BLUE)
+        self._print_message(self.format_help(), file, BLUE)
 
     def _print_message(self, message, file=None, color=None):
         if message:
@@ -34,11 +33,6 @@ class ColoredArgumentParser(ArgumentParser):
         if message:
             self._print_message(message, sys.stderr, RED)
         sys.exit(status)
-
-    def error(self, message):
-        self.print_usage(sys.stderr)
-        args = {"prog": self.prog, "message": message}
-        self.exit(2, gettext("%(prog)s: Error: %(message)s\n") % args)
 
 
 def parse_args():
