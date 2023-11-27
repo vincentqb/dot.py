@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 
 from dot import dot
 from dot.command import COMMAND
-from dot.utils import BLUE, RED, RESET, YELLOW
+from dot.utils import RED, RESET, YELLOW
 
 
 class ColoredArgumentParser(ArgumentParser):
@@ -15,11 +15,6 @@ class ColoredArgumentParser(ArgumentParser):
         if file is None:
             file = sys.stdout
         self._print_message(self.format_usage(), file, YELLOW)
-
-    def print_help(self, file=None):
-        if file is None:
-            file = sys.stdout
-        self._print_message(self.format_help(), file, BLUE)
 
     def _print_message(self, message, file=None, color=None):
         if message:
