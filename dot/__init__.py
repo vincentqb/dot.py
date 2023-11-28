@@ -9,7 +9,7 @@ def dot(command, home, profiles, dry_run):
     run(command, home, profiles, True, logger)  # Dry run first
 
     if logger.warning.counter > 0:
-        logger.error("There were conflicts: exiting without changing dotfiles.")
+        logger.error("Error: There were conflicts. Exiting without changing dotfiles.")
         raise SystemExit(1)
 
     if not dry_run:
