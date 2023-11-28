@@ -13,7 +13,7 @@ def is_not_tool(name):
     return which(name) is None
 
 
-def skipif_not_available(cli):
+def skipna(cli):
     return pytest.param(
         cli,
         marks=pytest.mark.skipif(
