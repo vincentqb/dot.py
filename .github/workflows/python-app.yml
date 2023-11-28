@@ -27,18 +27,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install tomli
         python tools/generate_requirements.py
-        pip install -r requirements/build.txt
         pip install -r requirements/lint.txt
+        pip install -r requirements/build.txt
         pip install -r requirements/test.txt
+    - name: Lint
+      run: |
+        ruff .
     - name: Build
       run: |
         python -m build
     - name: Install
       run: |
         pip install dist/*.whl
-    - name: Lint
-      run: |
-        ruff .
     - name: Test
       run: |
         python -m pytest
