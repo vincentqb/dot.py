@@ -11,7 +11,14 @@ git clone https://github.com/vincentqb/dot.py ~/dot.py
 ~/dot.py/dot.py -h
 ```
 
-Alternatively, you can install with pip:
+or build and install from source:
+
+```sh
+pip install git+https://github.com/vincentqb/dot.py
+dot.py -h
+```
+
+or install with pip:
 
 ```sh
 pip install dot.py
@@ -70,11 +77,8 @@ Values which need to be set in a file when dot.py is run can be placed in a temp
 
 1. Be sure to include `**/*.rendered` in `.gitignore` if you put your dotfiles into a git repository.
 
-## Testing
+## Development
 
-Run tests from the root of the repository:
-```
-python3 -m pytest
-```
+For linting, building and testing, see the [workflow](https://github.com/vincentqb/dot.py/blob/main/.github/workflows/python-app.yml).
 
-![Test and Build](https://github.com/vincentqb/dot.py/actions/workflows/python-app.yml/badge.svg)
+![Test](https://github.com/vincentqb/dot.py/actions/workflows/python-app.yml/badge.svg)

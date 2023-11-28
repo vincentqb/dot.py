@@ -31,17 +31,13 @@ jobs:
         pip install -r requirements/build.txt
         pip install -r requirements/test.txt
     - name: Lint
-      run: |
-        ruff .
+      run: ruff .
     - name: Build
-      run: |
-        python -m build
+      run: python -m build
     - name: Install
-      run: |
-        pip install dist/*.whl
+      run: pip install dist/*.whl
     - name: Test
-      run: |
-        python -m pytest
+      run: python -m pytest
 
   publish:
     name: Publish
@@ -66,7 +62,6 @@ jobs:
         python tools/generate_requirements.py
         pip install -r requirements/build.txt
     - name: Build
-      run: |
-        python -m build
+      run: python -m build
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
