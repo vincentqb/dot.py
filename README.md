@@ -4,11 +4,18 @@
 
 ## Install and Help
 
-You can simply clone the repository:
+You can simply run directly from the repository:
 
 ```sh
 git clone https://github.com/vincentqb/dot.py ~/dot.py
 ~/dot.py/dot.py -h
+```
+
+or run as module from the repository:
+
+```sh
+git clone https://github.com/vincentqb/dot.py ~/dot.py
+PYTHONPATH=~/dot.py/ python -m dot -h
 ```
 
 or build and install from source:
@@ -18,12 +25,14 @@ pip install git+https://github.com/vincentqb/dot.py
 dot.py -h
 ```
 
-or install with pip:
+or install with pip from pypi:
 
 ```sh
 pip install dot.py
 dot.py -h
 ```
+
+and just make sure to use the corresponding command below.
 
 ## Quick Start
 
