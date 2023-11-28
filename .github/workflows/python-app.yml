@@ -59,7 +59,7 @@ jobs:
         python -m pip install --upgrade pip
         : # https://github.com/pypa/pip/issues/11440#issuecomment-1826187421
         pip install --upgrade git+https://github.com/jazzband/pip-tools
-        pip-compile --all-build-deps --all-extras --output-file=requirements.txt --strip-extras pyproject.toml
+        pip-compile --all-build-deps --output-file=requirements.txt --strip-extras pyproject.toml
         pip install -r requirements.txt
     - name: Build
       run: python -m build
