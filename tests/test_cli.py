@@ -7,7 +7,7 @@ from conftest import skipna
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
 @pytest.mark.parametrize("command", ["link", "unlink"])
 @pytest.mark.parametrize("home_folder", ["home", "not_a_home"])
-@pytest.mark.parametrize("dry_run", [False, True])
+@pytest.mark.parametrize("dry_run", [None, False, True])
 def test_error_code_cli(cli, root, command, home_folder, dry_run):
     home = root / home_folder
     profile = root / "not_a_profile"
@@ -18,8 +18,8 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
             command,
             str(home),
             str(profile),
-            f"--{'' if dry_run else 'no-'}dry-run",
         ]
+        + ([] if dry_run is None else [f"--{'' if dry_run else 'no-'}dry-run"])
     )
 
     assert error_code == 1
