@@ -14,8 +14,8 @@ class ColoredFormatter(logging.Formatter):
     }
 
     def format(self, record):
-        format_ = self.formats.get(record.levelno)
-        return logging.Formatter(format_).format(record)
+        format = self.formats.get(record.levelno)
+        return logging.Formatter(format).format(record)
 
 
 class CallCounter:
