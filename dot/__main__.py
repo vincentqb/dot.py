@@ -18,9 +18,7 @@ class ColoredArgumentParser(ArgumentParser):
 
     def _print_message(self, message, file=None, color=None):
         if message:
-            if color is None:
-                message = message.strip() + "\n"
-            else:
+            if color is not None:
                 message = color + message.strip() + RESET + "\n"
         super()._print_message(message, file)
 
