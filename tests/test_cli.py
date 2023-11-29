@@ -12,15 +12,15 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
     home = root / home_folder
     profile = root / "not_a_profile"
 
-    error_code = subprocess.call(
-        cli.split(" ")
-        + [
-            command,
-            str(home),
-            str(profile),
-        ]
-        + ([] if dry_run is None else [f"--{'' if dry_run else 'no-'}dry-run"])
-    )
+    call = cli.split(" ") + [command, str(home), str(profile)]
+
+    if dry_run is not None:
+        if dry_run:
+            call += ["--dry-run"]
+        else:
+            call += ["--no-dry-run"]
+
+    error_code = subprocess.call(call)
 
     assert error_code == 1
     assert home.is_dir() != (home_folder != "home")
@@ -28,14 +28,20 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
 
 
 @pytest.mark.parametrize("cli", [skipna("dotpy"), skipna("./dotpy"), "python -m dot"])
-@pytest.mark.parametrize("command", ["", "link", "unlink"])
+@pytest.mark.parametrize("command", [None, "link", "unlink"])
 def test_error_code_help_cli(cli, root, command):
-    error_code = subprocess.call(cli.split(" ") + ([command] if command else []) + ["-h"])
+    command = [command] if command else []
+
+    call = cli.split(" ") + command + ["-h"]
+    error_code = subprocess.call(call)
     assert error_code == 0
 
 
 @pytest.mark.parametrize("cli", [skipna("dotpy"), skipna("./dotpy"), "python -m dot"])
-@pytest.mark.parametrize("command", ["", "link", "unlink"])
+@pytest.mark.parametrize("command", [None, "link", "unlink"])
 def test_error_code_missing_cli(cli, root, command):
-    error_code = subprocess.call(cli.split(" ") + ([command] if command else []))
+    command = [command] if command else []
+
+    call = cli.split(" ") + command
+    error_code = subprocess.call(call)
     assert error_code == 2
