@@ -5,9 +5,9 @@ Manage links to dotfiles.
 import sys
 from argparse import ArgumentParser
 
-from dot import dot
-from dot.command import COMMAND
-from dot.utils import RED, RESET, YELLOW
+from . import dot
+from .command import COMMAND
+from .utils import RED, RESET, YELLOW
 
 
 class ColoredArgumentParser(ArgumentParser):

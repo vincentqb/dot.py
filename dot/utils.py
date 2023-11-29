@@ -1,5 +1,6 @@
 import os
 
+# Define colors
 RESET = "\x1b[0m"
 RED = "\x1b[31;20m"
 BOLD_RED = "\x1b[31;1m"
