@@ -1,4 +1,4 @@
-__all__ = ["dot"]
+__all__ = ["dot", "command", "logger"]
 __ALL__ = dir() + __all__
 
 from .command import run
