@@ -1,5 +1,5 @@
 [project]
-name = "dotpy"
+name = "dot.py"
 version = "1.2.0"
 authors = [
   { name="Vincent QB", email="vincentqb@gmail.com" },

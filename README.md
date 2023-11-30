@@ -28,7 +28,7 @@ dotpy --help
 or install with pip from pypi:
 
 ```sh
-pip install dotpy
+pip install dot.py
 dotpy --help
 ```
 
