@@ -8,28 +8,28 @@ You can simply run directly from the repository:
 
 ```sh
 git clone https://github.com/vincentqb/dotpy ~/dotpy
-~/dotpy/dotpy -h
+~/dotpy/dotpy --help
 ```
 
 or run as module from the repository:
 
 ```sh
 git clone https://github.com/vincentqb/dotpy ~/dotpy
-PYTHONPATH=~/dotpy/ python -m dot -h
+PYTHONPATH=~/dotpy/ python -m dot --help
 ```
 
 or build and install from source:
 
 ```sh
 pip install git+https://github.com/vincentqb/dotpy
-dotpy -h
+dotpy --help
 ```
 
 or install with pip from pypi:
 
 ```sh
 pip install dotpy
-dotpy -h
+dotpy --help
 ```
 
 and just make sure to use the corresponding command below.
