@@ -1,10 +1,3 @@
-import os
-import re
-from pathlib import Path
-from string import Template
-
-from .utils import get_env
-
 __all__ = [
     "render_recurse",
     "render_single",
@@ -12,6 +5,18 @@ __all__ = [
     "unlink",
     "run",
 ]
+__ALL__ = dir() + __all__
+
+import os
+import re
+from pathlib import Path
+from string import Template
+
+from .utils import get_env
+
+
+def __dir__():
+    return __ALL__
 
 
 def render_recurse(candidate, rendered, _, dry_run, logger):

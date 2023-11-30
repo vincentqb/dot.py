@@ -1,8 +1,13 @@
+__all__ = ["get_counting_logger"]
+__ALL__ = dir() + __all__
+
 import logging
 
 from .utils import BOLD_RED, GREY, RED, RESET, YELLOW, get_env
 
-__all__ = ["get_counting_logger"]
+
+def __dir__():
+    return __ALL__
 
 
 class ColoredFormatter(logging.Formatter):

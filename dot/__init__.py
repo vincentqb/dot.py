@@ -1,7 +1,12 @@
+__all__ = ["dot"]
+__ALL__ = dir() + __all__
+
 from .command import run
 from .logger import get_counting_logger
 
-__all__ = ["dot"]
+
+def __dir__():
+    return __ALL__
 
 
 def dot(command, home, profiles, dry_run):
