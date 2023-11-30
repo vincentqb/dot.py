@@ -1,10 +1,4 @@
-__all__ = [
-    "render_recurse",
-    "render_single",
-    "link",
-    "unlink",
-    "run",
-]
+__all__ = ["render_recurse", "render_single", "link", "unlink", "run", "COMMAND"]
 __ALL__ = dir() + __all__
 
 import os
