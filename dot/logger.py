@@ -2,6 +2,8 @@ import logging
 
 from .utils import BOLD_RED, GREY, RED, RESET, YELLOW, get_env
 
+__all__ = ["get_counting_logger"]
+
 
 class ColoredFormatter(logging.Formatter):
     FORMAT = "%(message)s"

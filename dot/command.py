@@ -5,6 +5,14 @@ from string import Template
 
 from .utils import get_env
 
+__all__ = [
+    "render_recurse",
+    "render_single",
+    "link",
+    "unlink",
+    "run",
+]
+
 
 def render_recurse(candidate, rendered, _, dry_run, logger):
     """
