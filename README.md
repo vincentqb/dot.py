@@ -36,7 +36,7 @@ and just make sure to use the corresponding command below.
 
 ## Quick Start
 
-1. Create your initial profile. For example, we create a directory called `default`.
+1. Create your initial profile. For example, you can create a directory called `default`.
 
     ```sh
     mkdir default
@@ -72,10 +72,10 @@ Values which need to be set in a file when dotpy is run can be placed in a templ
     export SECRET_KEY=$ENV_SECRET_KEY
     ```
 
-1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile:
+1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile. Since the variables might contain sensitive information, check how to tell your shell to forget the line. For instance, a leading space tells fish to do remove the line from its history.
 
     ```sh
-    env ENV_SECRET_KEY=test1234 ~/dotpy/dotpy link default
+     env ENV_SECRET_KEY=test1234 ~/dotpy/dotpy link default
     ```
 
 1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/env.rendered` being created and linked to `~/.env` with the below contents.
