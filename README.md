@@ -72,7 +72,7 @@ Values which need to be set in a file when dotpy is run can be placed in a templ
     export SECRET_KEY=$ENV_SECRET_KEY
     ```
 
-1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile. (Since the variables might contain sensitive information, check how to tell your shell to forget the line. For instance, a leading space as in the following tells fish to drop the line from its history.)
+1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile. (A leading space tells the fish shell to drop the line from its history.)
 
     ```sh
      env ENV_SECRET_KEY=test1234 ~/dotpy/dotpy link default
