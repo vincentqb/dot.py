@@ -15,7 +15,7 @@ classifiers = [
 [project.optional-dependencies]
 build = ["build"]
 test = ["pytest"]
-lint = ["ruff"]
+lint = ["ruff", "codespell"]
 
 [project.scripts]
 "dotpy" = "dot.__main__:dot_from_args"
