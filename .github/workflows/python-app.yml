@@ -32,7 +32,7 @@ jobs:
     - name: Spelling
       run: codespell .
     - name: Lint
-      run: ruff .
+      run: ruff check .
     - name: Build
       run: python -m build
     - name: Install
