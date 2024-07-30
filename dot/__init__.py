@@ -1,6 +1,7 @@
-__all__ = ["dot", "command", "logger"]
+__all__ = ["command", "dot", "logger"]
 __ALL__ = dir() + __all__
 
+from . import command, logger
 from .command import run
 from .logger import get_counting_logger
 
