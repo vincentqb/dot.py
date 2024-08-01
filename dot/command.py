@@ -49,7 +49,7 @@ def link(_, rendered, dotfile, dry_run, logger):
     if not dotfile.is_symlink():
         return logger.warning(f"File {dotfile} exists but is not a link")
 
-    dotfile_link = Path(os.readlink(str(dotfile))).expanduser().resolve()
+    dotfile_link = dotfile.readlink()
     if dotfile_link != rendered:
         return logger.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
 
@@ -66,7 +66,7 @@ def unlink(_, rendered, dotfile, dry_run, logger):
     if not dotfile.is_symlink():
         return logger.warning(f"File {dotfile} exists but is not a link")
 
-    dotfile_link = Path(os.readlink(str(dotfile))).expanduser().resolve()
+    dotfile_link = dotfile.readlink()
     if dotfile_link != rendered:
         return logger.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
 
