@@ -1,15 +1,13 @@
 [project]
 name = "dot.py"
 version = "1.2.0"
-authors = [
-  { name="Vincent QB", email="vincentqb@gmail.com" },
-]
+authors = [{ name = "Vincent QB", email = "vincentqb@gmail.com" }]
 description = "dotpy is a minimalist python script for managing dotfiles via symbolic links."
 readme = "README.md"
 requires-python = ">=3.6"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
 ]
 
 [project.optional-dependencies]
