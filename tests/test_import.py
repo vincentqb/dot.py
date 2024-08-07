@@ -4,7 +4,7 @@ import pytest
 
 modules = {
     "dot": ["dot"],
-    "dot.command": ["commands_available", "run"],
+    "dot.command": ["available", "run"],
     "dot.logger": ["get_counting_logger"],
 }
 

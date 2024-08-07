@@ -1,4 +1,4 @@
-__all__ = ["commands_available", "run"]
+__all__ = ["available", "run"]
 __ALL__ = dir() + __all__
 
 import os
@@ -97,9 +97,9 @@ def run(command, home, profiles, dry_run, logger):
                 rendered = candidate.parent / re.sub(".template$", ".rendered", name)
                 dotfile = home / ("." + re.sub(".template$", "", name))
             # Run user requested command
-            for func in commands_mapping[command]:
+            for func in mapping[command]:
                 func(candidate, rendered, dotfile, dry_run, logger)
 
 
-commands_mapping = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
-commands_available = list(commands_mapping.items())
+mapping = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
+available = list(mapping.items())
