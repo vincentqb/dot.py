@@ -3,8 +3,8 @@ import importlib
 import pytest
 
 modules = {
-    "dot": ["dot", "command", "logger"],
-    "dot.command": ["render_recurse", "render_single", "link", "unlink", "run", "COMMAND"],
+    "dot": ["dot"],
+    "dot.command": ["commands_available", "run"],
     "dot.logger": ["get_counting_logger"],
 }
 

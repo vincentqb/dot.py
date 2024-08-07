@@ -1,4 +1,4 @@
-__all__ = ["COMMAND", "link", "render_recurse", "render_single", "run", "unlink"]
+__all__ = ["commands_available", "run"]
 __ALL__ = dir() + __all__
 
 import os
@@ -13,7 +13,7 @@ def __dir__():
     return __ALL__
 
 
-def render_recurse(candidate, rendered, _, dry_run, logger):
+def render_recurse(candidate, rendered, dotfile, dry_run, logger):
     """
     Render templates recursively.
     """
@@ -21,10 +21,10 @@ def render_recurse(candidate, rendered, _, dry_run, logger):
         for subcandidate in sorted(candidate.glob("**/*.template")):
             if subcandidate.is_file():
                 subrendered = re.sub(".template$", "", str(subcandidate))
-                render_single(subcandidate, subrendered, _, dry_run, logger)
+                render_single(subcandidate, subrendered, dotfile, dry_run, logger)
 
 
-def render_single(candidate, rendered, _, dry_run, logger):
+def render_single(candidate, rendered, dotfile, dry_run, logger):
     """
     Render a template.
     """
@@ -37,7 +37,7 @@ def render_single(candidate, rendered, _, dry_run, logger):
         logger.info(f"File {rendered} created.")
 
 
-def link(_, rendered, dotfile, dry_run, logger):
+def link(candidate, rendered, dotfile, dry_run, logger):
     """
     Link dotfiles to files in given profile directories.
     """
@@ -56,7 +56,7 @@ def link(_, rendered, dotfile, dry_run, logger):
     return logger.info(f"File {dotfile} links to {rendered} as expected")
 
 
-def unlink(_, rendered, dotfile, dry_run, logger):
+def unlink(candidate, rendered, dotfile, dry_run, logger):
     """
     Unlink dotfiles linked to files in given profile directories.
     """
@@ -97,8 +97,9 @@ def run(command, home, profiles, dry_run, logger):
                 rendered = candidate.parent / re.sub(".template$", ".rendered", name)
                 dotfile = home / ("." + re.sub(".template$", "", name))
             # Run user requested command
-            for func in COMMAND[command]:
+            for func in commands_mapping[command]:
                 func(candidate, rendered, dotfile, dry_run, logger)
 
 
-COMMAND = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
+commands_mapping = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
+commands_available = list(commands_mapping.items())
