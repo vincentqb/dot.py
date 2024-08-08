@@ -6,7 +6,7 @@ import sys
 from argparse import ArgumentParser
 
 from . import dot
-from ._command import available
+from ._command import mapping
 from ._utils import RED, RESET, YELLOW
 
 
@@ -31,7 +31,7 @@ class ColoredArgumentParser(ArgumentParser):
 def parse_args():
     parser = ColoredArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for key, funcs in available:
+    for key, funcs in mapping.items():
         subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
         subparser.add_argument("profiles", nargs="+")
         subparser.add_argument("--home", nargs="?", default="~")
