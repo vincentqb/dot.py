@@ -6,8 +6,8 @@ import sys
 from argparse import ArgumentParser
 
 from . import dot
-from .command import available
-from .utils import RED, RESET, YELLOW
+from ._command import available
+from ._utils import RED, RESET, YELLOW
 
 
 class ColoredArgumentParser(ArgumentParser):

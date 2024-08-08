@@ -3,8 +3,8 @@ import importlib
 import pytest
 
 doc_func = {
-    ("dot.command", "link"): "Link dotfiles to files in given profile directories.",
-    ("dot.command", "unlink"): "Unlink dotfiles linked to files in given profile directories.",
+    ("dot._command", "link"): "Link dotfiles to files in given profile directories.",
+    ("dot._command", "unlink"): "Unlink dotfiles linked to files in given profile directories.",
 }
 
 

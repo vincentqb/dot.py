@@ -1,16 +1,9 @@
-__all__ = ["available", "run"]
-__ALL__ = dir() + __all__
-
 import os
 import re
 from pathlib import Path
 from string import Template
 
-from .utils import get_env
-
-
-def __dir__():
-    return __ALL__
+from ._utils import get_env
 
 
 def render_recurse(candidate, rendered, dotfile, dry_run, logger):

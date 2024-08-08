@@ -1,13 +1,6 @@
-__all__ = ["get_counting_logger"]
-__ALL__ = dir() + __all__
-
 import logging
 
-from .utils import BOLD_RED, GREY, RED, RESET, YELLOW, get_env
-
-
-def __dir__():
-    return __ALL__
+from ._utils import BOLD_RED, GREY, RED, RESET, YELLOW, get_env
 
 
 class ColoredFormatter(logging.Formatter):

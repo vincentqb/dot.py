@@ -1,8 +1,8 @@
 __all__ = ["dot"]
 __ALL__ = dir() + __all__
 
-from .command import run
-from .logger import get_counting_logger
+from ._command import run
+from ._logger import get_counting_logger
 
 
 def __dir__():
