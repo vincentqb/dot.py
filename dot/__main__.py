@@ -10,22 +10,30 @@ from ._command import mapping
 from ._utils import RED, RESET, YELLOW
 
 
+def capitalize(message):
+    return "\n".join(
+        ((m[0].upper() if len(m) > 0 else "") + (m[1:] if len(m) > 1 else "") for m in message.split("\n"))
+    )
+
+
 class ColoredArgumentParser(ArgumentParser):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.prog = str(vars(sys.modules[__name__])["__package__"])
+
     def print_usage(self, file=None):
         if file is None:
             file = sys.stdout
-        self._print_message(YELLOW + self.format_usage()[0].upper() + self.format_usage()[1:] + RESET, file)
+        self._print_message(YELLOW + capitalize(self.format_usage()) + RESET, file)
 
     def print_help(self, file=None):
         if file is None:
             file = sys.stdout
-        self._print_message(self.format_help()[0].upper() + self.format_help()[1:], file)
+        self._print_message(capitalize(self.format_help()), file)
 
     def error(self, message):
         self.print_usage(sys.stderr)
-        message = message.strip()
-        message = message[0].upper() + message[1:]
-        self.exit(2, RED + f"Error: {self.prog}: {message}" + RESET + "\n")
+        self.exit(2, RED + capitalize(f"Error: {self.prog}: {message.strip()}") + RESET + "\n")
 
 
 def parse_args():
