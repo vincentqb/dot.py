@@ -102,4 +102,4 @@ def run(command, home, profiles, dry_run, logger):
 
 
 mapping = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
-available = list(mapping.items())
+available = sorted(mapping.items())
