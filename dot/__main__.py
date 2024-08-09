@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 
 from . import dot
 from ._command import mapping
-from ._utils import capitalize, colorize
+from ._utils import standardize
 
 
 class ColoredArgumentParser(ArgumentParser):
@@ -18,16 +18,16 @@ class ColoredArgumentParser(ArgumentParser):
     def print_usage(self, file=None):
         if file is None:
             file = sys.stdout
-        self._print_message(colorize(capitalize(self.format_usage()), "yellow"), file)
+        self._print_message(standardize(self.format_usage(), "yellow"), file)
 
     def print_help(self, file=None):
         if file is None:
             file = sys.stdout
-        self._print_message(capitalize(self.format_help()), file)
+        self._print_message(standardize(self.format_help()), file)
 
     def error(self, message):
         self.print_usage(sys.stderr)
-        self.exit(2, colorize(capitalize(f"Error: {self.prog}: {message.strip()}"), "red") + "\n")
+        self.exit(2, standardize(f"Error: {self.prog}: {message.strip()}", "red") + "\n")
 
 
 def parse_args():

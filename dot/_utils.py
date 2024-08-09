@@ -20,5 +20,9 @@ def colorize(message, color):
     return COLORS[color] + message + COLORS["reset"]
 
 
+def standardize(message, color="reset"):
+    return colorize(capitalize(message), color)
+
+
 def get_env(key):
     return os.environ.get(key, "false").lower() in ("true", "t", "1")
