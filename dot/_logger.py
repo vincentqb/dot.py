@@ -1,6 +1,6 @@
 import logging
 
-from ._utils import BOLD_RED, GREY, RED, RESET, YELLOW, get_env
+from ._utils import BOLD_RED, GREY, RED, RESET, YELLOW, capitalize, get_env
 
 
 class ColoredFormatter(logging.Formatter):
@@ -15,6 +15,7 @@ class ColoredFormatter(logging.Formatter):
 
     def format(self, record):
         format = self.formats.get(record.levelno)
+        record.msg = capitalize(record.msg)
         return logging.Formatter(format).format(record)
 
 

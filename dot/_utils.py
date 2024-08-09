@@ -9,5 +9,11 @@ BLUE = "\x1b[36;20m"
 GREY = "\x1b[38;20m"
 
 
+def capitalize(message):
+    return "\n".join(
+        ((m[0].upper() if len(m) > 0 else "") + (m[1:] if len(m) > 1 else "") for m in message.split("\n"))
+    )
+
+
 def get_env(key):
     return os.environ.get(key, "false").lower() in ("true", "t", "1")

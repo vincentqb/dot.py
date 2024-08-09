@@ -7,13 +7,7 @@ from argparse import ArgumentParser
 
 from . import dot
 from ._command import mapping
-from ._utils import RED, RESET, YELLOW
-
-
-def capitalize(message):
-    return "\n".join(
-        ((m[0].upper() if len(m) > 0 else "") + (m[1:] if len(m) > 1 else "") for m in message.split("\n"))
-    )
+from ._utils import RED, RESET, YELLOW, capitalize
 
 
 class ColoredArgumentParser(ArgumentParser):
