@@ -1,21 +1,21 @@
 import logging
 
-from ._utils import get_env, standardize
+from ._utils import capitalize, colorize, get_env
 
 
 class ColoredFormatter(logging.Formatter):
     FORMAT = "%(message)s"
     formats = {
-        logging.DEBUG: standardize(FORMAT, "grey"),
-        logging.INFO: standardize(FORMAT, "grey"),
-        logging.WARNING: standardize(FORMAT, "yellow"),
-        logging.ERROR: standardize(FORMAT, "red"),
-        logging.CRITICAL: standardize(FORMAT, "red bold"),
+        logging.DEBUG: colorize(FORMAT, "grey"),
+        logging.INFO: colorize(FORMAT, "grey"),
+        logging.WARNING: colorize(FORMAT, "yellow"),
+        logging.ERROR: colorize(FORMAT, "red"),
+        logging.CRITICAL: colorize(FORMAT, "red bold"),
     }
 
     def format(self, record):
         format = self.formats.get(record.levelno)
-        record.msg = standardize(record.msg)
+        record.msg = capitalize(record.msg)
         return logging.Formatter(format).format(record)
 
 
