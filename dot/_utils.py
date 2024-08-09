@@ -2,8 +2,8 @@ import os
 
 COLORS = {
     "blue": "\x1b[36;20m",
-    "grey": "\x1b[38;20m",
     "green": "\x1b[32;20m",
+    "grey": "\x1b[38;20m",
     "red": "\x1b[31;20m",
     "red bold": "\x1b[31;1m",
     "reset": "\x1b[0m",
