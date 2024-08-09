@@ -16,11 +16,12 @@ def colorize(message, color):
         "red bold": "\x1b[31;1m",
         "reset": "\x1b[0m",
         "yellow": "\x1b[33;20m",
+        None: "",
     }
     return COLORS[color] + message + COLORS["reset"]
 
 
-def standardize(message, color="reset"):
+def standardize(message, color=None):
     return colorize(capitalize(message), color)
 
 
