@@ -5,8 +5,7 @@ Manage links to dotfiles.
 import sys
 from argparse import ArgumentParser
 
-from . import dot
-from ._command import mapping
+from ._command import dot, mapping
 from ._utils import standardize
 
 
