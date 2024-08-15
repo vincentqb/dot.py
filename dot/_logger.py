@@ -30,11 +30,12 @@ class CallCounter:
 
 
 def get_counting_logger(dry_run):
-    level = logging.WARNING
     if get_env("DOT_DEBUG"):
         level = logging.DEBUG
     elif dry_run:
         level = logging.INFO
+    else:
+        level = logging.WARNING
 
     handler = logging.StreamHandler()
     handler.setLevel(level)
