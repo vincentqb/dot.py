@@ -5,7 +5,7 @@ Manage links to dotfiles.
 import sys
 from argparse import ArgumentParser
 
-from ._command import dot, mapping
+from ._command import commands, dot
 from ._utils import standardize
 
 
@@ -32,7 +32,7 @@ class ColoredArgumentParser(ArgumentParser):
 def parse_args():
     parser = ColoredArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for key, funcs in mapping.items():
+    for key, funcs in commands.items():
         subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
         subparser.add_argument("profiles", nargs="+")
         subparser.add_argument("--home", nargs="?", default="~")

@@ -91,7 +91,7 @@ def run(command, home, profiles, dry_run, logger):
                 rendered = candidate.parent / re.sub(".template$", ".rendered", name)
                 dotfile = home / ("." + re.sub(".template$", "", name))
             # Run user requested command
-            for func in mapping[command]:
+            for func in commands[command]:
                 func(candidate, rendered, dotfile, dry_run, logger)
 
 
@@ -107,4 +107,4 @@ def dot(command, home, profiles, dry_run):
         run(command, home, profiles, dry_run, logger)  # Wet run second
 
 
-mapping = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
+commands = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
