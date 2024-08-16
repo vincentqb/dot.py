@@ -29,7 +29,7 @@ only-include = ["dot"]
 
 [tool.coverage.report]
 fail_under = 70
-show_missing = true
+show_missing = false
 
 [tool.coverage.run]
 omit = ["tests/*"]
