@@ -31,7 +31,9 @@ jobs:
           ruff check .
           ruff format . --diff
       - name: Test
-        run: python -m pytest
+        run: |
+          python -m coverage run -m pytest
+          python -m coverage report
 
   publish:
     name: Publish

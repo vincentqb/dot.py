@@ -6,12 +6,12 @@ description = "dotpy is a minimalist python script for managing dotfiles via sym
 readme = "README.md"
 requires-python = ">=3.6"
 classifiers = [
-  "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "codespell", "ruff>=0.5.3"]
+dev = ["codespell", "coverage", "pytest", "ruff>=0.5.3"]
 
 [project.scripts]
 "dotpy" = "dot.__main__:dot_from_args"
@@ -26,6 +26,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build]
 only-include = ["dot"]
+
+[tool.coverage.report]
+fail_under = 90
 
 [tool.ruff]
 line-length = 120
