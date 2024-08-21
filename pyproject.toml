@@ -11,7 +11,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["codespell", "coverage", "pytest", "ruff>=0.5.3"]
+dev = ["codespell", "coverage", "pre-commit", "pytest", "ruff>=0.5.3"]
 
 [project.scripts]
 "dotpy" = "dot.__main__:dot_from_args"
