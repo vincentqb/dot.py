@@ -88,6 +88,6 @@ Values which need to be set in a file when dotpy is run can be placed in a templ
 
 ## Development
 
-For linting, building and testing, see the [workflow](https://github.com/vincentqb/dotpy/blob/main/.github/workflows/python-app.yml) and use `pre-commit install` to get the git pre-commit hooks setup if desired.
+For linting, building and testing, see the [workflow](https://github.com/vincentqb/dotpy/blob/main/.github/workflows/python-app.yml).
 
 ![Test](https://github.com/vincentqb/dotpy/actions/workflows/python-app.yml/badge.svg)
