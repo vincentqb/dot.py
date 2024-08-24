@@ -25,6 +25,9 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install .[dev]
+      - name: Pre-Commit
+        run: |
+          pre-commit install
       - name: Lint
         run: |
           codespell .
