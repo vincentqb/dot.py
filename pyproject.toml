@@ -1,14 +1,18 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
 [project]
-name = "dot.py"
-version = "1.2.0"
-authors = [{ name = "Vincent QB", email = "vincentqb@gmail.com" }]
-description = "dotpy is a minimalist python script for managing dotfiles via symbolic links."
-readme = "README.md"
-requires-python = ">=3.6"
+authors = [{name = "Vincent QB", email = "vincentqb@gmail.com"}]
 classifiers = [
   "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3"
 ]
+description = "dotpy is a minimalist python script for managing dotfiles via symbolic links."
+name = "dot.py"
+readme = "README.md"
+requires-python = ">=3.6"
+version = "1.2.0"
 
 [project.optional-dependencies]
 dev = ["codespell", "coverage", "pre-commit", "pytest", "ruff>=0.5.3"]
@@ -17,15 +21,8 @@ dev = ["codespell", "coverage", "pre-commit", "pytest", "ruff>=0.5.3"]
 "dotpy" = "dot.__main__:dot_from_args"
 
 [project.urls]
-"Homepage" = "https://github.com/vincentqb/dotpy/"
 "Bug Tracker" = "https://github.com/vincentqb/dotpy/"
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build]
-only-include = ["dot"]
+"Homepage" = "https://github.com/vincentqb/dotpy/"
 
 [tool.coverage.report]
 fail_under = 70
@@ -33,6 +30,9 @@ show_missing = false
 
 [tool.coverage.run]
 omit = ["tests/*"]
+
+[tool.hatch.build]
+only-include = ["dot"]
 
 [tool.ruff]
 line-length = 120
