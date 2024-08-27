@@ -2,9 +2,9 @@ name: test and publish
 
 on:
   push:
-    branches: ["main"]
+    branches: [main]
   pull_request:
-    branches: ["main"]
+    branches: [main]
   release:
     types: [published]
 
@@ -16,27 +16,27 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.12"
-      - name: Install
-        run: |
-          pip install --upgrade pip
-          pip install .[dev]
-      - name: Pre-Commit
-        run: |
-          pre-commit install
-      - name: Lint
-        run: |
-          codespell .
-          ruff check .
-          ruff format . --diff
-      - name: Test
-        run: |
-          coverage run -m pytest
-          coverage report
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.12'
+    - name: Install
+      run: |
+        pip install --upgrade pip
+        pip install .[dev]
+    - name: Pre-Commit
+      run: |
+        pre-commit install
+    - name: Lint
+      run: |
+        codespell .
+        ruff check .
+        ruff format . --diff
+    - name: Test
+      run: |
+        coverage run -m pytest
+        coverage report
 
   publish:
     name: Publish
@@ -49,17 +49,17 @@ jobs:
     needs: test
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install build
-      - name: Build
-        run: |
-          python -m build
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.12'
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install build
+    - name: Build
+      run: |
+        python -m build
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
