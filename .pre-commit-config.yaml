@@ -1,4 +1,10 @@
 repos:
+- repo: https://github.com/codespell-project/codespell
+  rev: v2.3.0
+  hooks:
+  - id: codespell
+    additional_dependencies:
+    - tomli  # if one configures using pyproject.toml
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.6.0
   hooks:
@@ -6,6 +12,14 @@ repos:
   - id: mixed-line-ending
   - id: trailing-whitespace
   - id: check-toml
+- repo: https://github.com/executablebooks/mdformat
+  rev: 0.7.17
+  hooks:
+  - id: mdformat
+    additional_dependencies:
+    - mdformat-gfm  # use github flavor markdown
+    - mdformat-black  # format python code block with black
+    - mdformat-beautysh  # format bash code block with beautysh
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
   rev: v2.14.0
   hooks:
