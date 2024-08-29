@@ -4,7 +4,7 @@ import pytest
 from conftest import skipna
 
 
-@pytest.mark.parametrize("cli", [skipna("dotpy"), skipna("./dotpy"), "python -m dot"])
+@pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
 @pytest.mark.parametrize("command", ["link", "unlink"])
 @pytest.mark.parametrize("home_folder", ["home", "not_a_home"])
 @pytest.mark.parametrize("dry_run", [None, False, True])
@@ -27,7 +27,7 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
     assert not profile.is_dir()
 
 
-@pytest.mark.parametrize("cli", [skipna("dotpy"), skipna("./dotpy"), "python -m dot"])
+@pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
 @pytest.mark.parametrize("command", [None, "link", "unlink"])
 def test_error_code_help_cli(cli, root, command):
     command = [command] if command else []
@@ -37,7 +37,7 @@ def test_error_code_help_cli(cli, root, command):
     assert error_code == 0
 
 
-@pytest.mark.parametrize("cli", [skipna("dotpy"), skipna("./dotpy"), "python -m dot"])
+@pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
 @pytest.mark.parametrize("command", [None, "link", "unlink"])
 def test_error_code_missing_cli(cli, root, command):
     command = [command] if command else []

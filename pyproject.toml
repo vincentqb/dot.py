@@ -18,7 +18,7 @@ version = "1.2.0"
 dev = ["codespell", "coverage", "pre-commit", "pytest", "ruff>=0.5.3"]
 
 [project.scripts]
-"dotpy" = "dot.__main__:dot_from_args"
+"dot.py" = "_dot:dot_from_args"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/vincentqb/dotpy/"
@@ -32,7 +32,7 @@ show_missing = false
 omit = ["tests/*"]
 
 [tool.hatch.build]
-only-include = ["dot"]
+only-include = ["dot", "_dot.py"]
 
 [tool.ruff]
 line-length = 120
