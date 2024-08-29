@@ -1,6 +1,6 @@
-# dotpy
+# dot.py
 
-**dotpy** is a minimalist python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.6+**.
+**dot.py** is a minimalist python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.6+**.
 
 ## Install and Help
 
@@ -14,21 +14,21 @@ dot.py --help
 or build and install from source:
 
 ```sh
-pip install git+https://github.com/vincentqb/dotpy
+pip install git+https://github.com/vincentqb/dot.py
 dot.py --help
 ```
 
 or run directly from the repository:
 
 ```sh
-git clone https://github.com/vincentqb/dotpy ~/dotpy
+git clone https://github.com/vincentqb/dot.py ~/dot.py
 ~/dot.py/dot.py --help
 ```
 
 or run as module from the repository:
 
 ```sh
-git clone https://github.com/vincentqb/dotpy ~/dotpy
+git clone https://github.com/vincentqb/dot.py ~/dot.py
 PYTHONPATH=~/dot.py/ python -m dot --help
 ```
 
@@ -48,10 +48,10 @@ and just make sure to use the corresponding command below.
    echo 'set -o vi' > default/env
    ```
 
-1. Link the profile. When you link, dotpy prepends a dot, in front of the original file name, to the linked file. Below, `default/env` will be linked to `~/.env`.
+1. Link the profile. When you link, dot.py prepends a dot, in front of the original file name, to the linked file. Below, `default/env` will be linked to `~/.env`.
 
    ```sh
-   ~/dotpy/dotpy link default
+   ~/dot.py/dot.py link default
    ```
 
 1. Continue adding your dotfiles to the default profile.
@@ -64,7 +64,7 @@ and just make sure to use the corresponding command below.
 
 ## Templates
 
-Values which need to be set in a file when dotpy is run can be placed in a template.
+Values which need to be set in a file when dot.py is run can be placed in a template.
 
 1. Append `.template` to any files which should be rendered. For example, assume you have a file `default/env.template` containing:
 
@@ -75,7 +75,7 @@ Values which need to be set in a file when dotpy is run can be placed in a templ
 1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile. (A leading space tells the fish shell to drop the line from its history.)
 
    ```sh
-    env ENV_SECRET_KEY=test1234 ~/dotpy/dotpy link default
+    env ENV_SECRET_KEY=test1234 ~/dot.py/dot.py link default
    ```
 
 1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/env.rendered` being created and linked to `~/.env` with the below contents.
@@ -88,6 +88,6 @@ Values which need to be set in a file when dotpy is run can be placed in a templ
 
 ## Development
 
-For linting, building and testing, see the [workflow](https://github.com/vincentqb/dotpy/blob/main/.github/workflows/python-app.yml).
+For linting, building and testing, see the [workflow](https://github.com/vincentqb/dot.py/blob/main/.github/workflows/python-app.yml).
 
-![Test](https://github.com/vincentqb/dotpy/actions/workflows/python-app.yml/badge.svg)
+![Test](https://github.com/vincentqb/dot.py/actions/workflows/python-app.yml/badge.svg)
