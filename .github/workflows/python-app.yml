@@ -37,6 +37,11 @@ jobs:
       run: |
         coverage run -m pytest
         coverage report
+    - name: Run
+      run: |
+        dot.py --help
+        ./dot.py --help
+        PYTHONPATH=./ python -m dot --help
 
   publish:
     name: Publish
