@@ -2,39 +2,14 @@
 
 **dot.py** is a minimalist python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.6+**.
 
-## Install and Help
-
-You can simply install from PyPI:
-
-```sh
-pip install dot.py
-dot.py --help
-```
-
-or build and install from source:
-
-```sh
-pip install git+https://github.com/vincentqb/dot.py
-dot.py --help
-```
-
-or run directly from the repository:
-
-```sh
-git clone https://github.com/vincentqb/dot.py ~/dot.py
-~/dot.py/dot.py --help
-```
-
-or run as module from the repository:
-
-```sh
-git clone https://github.com/vincentqb/dot.py ~/dot.py
-PYTHONPATH=~/dot.py/ python -m dot --help
-```
-
-and just make sure to use the corresponding command below.
-
 ## Quick Start
+
+1. Install from PyPI and check the help:
+
+    ```sh
+    pip install dot.py
+    dot.py --help
+    ```
 
 1. Create your initial profile. For example, you can create a directory called `default`.
 
@@ -51,7 +26,7 @@ and just make sure to use the corresponding command below.
 1. Link the profile. When you link, dot.py prepends a dot, in front of the original file name, to the linked file. Below, `default/env` will be linked to `~/.env`.
 
    ```sh
-   ~/dot.py/dot.py link default
+   dot.py link default
    ```
 
 1. Continue adding your dotfiles to the default profile.
@@ -75,7 +50,7 @@ Values which need to be set in a file when dot.py is run can be placed in a temp
 1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile. (A leading space tells the fish shell to drop the line from its history.)
 
    ```sh
-    env ENV_SECRET_KEY=test1234 ~/dot.py/dot.py link default
+    env ENV_SECRET_KEY=test1234 dot.py link default
    ```
 
 1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/env.rendered` being created and linked to `~/.env` with the below contents.
