@@ -20,19 +20,13 @@ dot.py --help
 1. Add any files you would like linked into your home when this profile is linked.
 
    ```sh
-   echo 'set -o vi' > default/env
+   mv ~/.bashrc default/bashrc
    ```
 
-1. Link the profile. When you link, dot.py prepends a dot, in front of the original file name, to the linked file. Below, `default/env` will be linked to `~/.env`.
+1. Link the profile. When you link, dot.py prepends a dot, in front of the original file name, to the linked file. Below, `default/bashrc` will be linked to `~/.bashrc`.
 
    ```sh
    dot.py link default
-   ```
-
-1. Continue adding your dotfiles to the default profile.
-
-   ```sh
-   mv ~/.bashrc default/bashrc
    ```
 
 1. You can safely re-run the link command to link newly added files. Store this profile in a cloud drive or source control. Repeat for additional profiles.
@@ -41,7 +35,7 @@ dot.py --help
 
 Values which need to be set in a file when dot.py is run can be placed in a template.
 
-1. Append `.template` to any files which should be rendered. For example, assume you have a file `default/env.template` containing:
+1. Append `.template` to any files which should be rendered. For example, assume you have a file `default/bashrc.template` containing:
 
    ```sh
    export SECRET_KEY=$ENV_SECRET_KEY
@@ -53,7 +47,7 @@ Values which need to be set in a file when dot.py is run can be placed in a temp
     env ENV_SECRET_KEY=test1234 dot.py link default
    ```
 
-1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/env.rendered` being created and linked to `~/.env` with the below contents.
+1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/bashrc.rendered` being created and linked to `~/.bashrc` with the below contents.
 
    ```sh
    export SECRET_KEY=test1234
