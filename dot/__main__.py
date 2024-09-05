@@ -25,8 +25,8 @@ class ColoredArgumentParser(ArgumentParser):
         self.exit(2, standardize(f"Error: {self.prog}: {message.strip()}", "red") + "\n")
 
 
-def parse_args():
-    parser = ColoredArgumentParser(prog="dot.py", description=__doc__)
+def parse_args(prog):
+    parser = ColoredArgumentParser(prog=prog, description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     for key, funcs in commands.items():
         subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
@@ -38,9 +38,9 @@ def parse_args():
     return vars(parser.parse_args())
 
 
-def dot_from_args():
-    dot(**parse_args())
+def dot_from_args(*, prog="dot.py"):
+    dot(**parse_args(prog))
 
 
 if __name__ == "__main__":
-    dot_from_args()
+    dot_from_args(prog="dot")
