@@ -95,8 +95,8 @@ def run(command, home, profiles, dry_run, logger):
                 func(candidate=candidate, rendered=rendered, dotfile=dotfile, dry_run=dry_run, logger=logger)
 
 
-def dot(command, home, profiles, dry_run):
-    logger = get_counting_logger(dry_run)
+def dot(command, home, profiles, verbose, dry_run):
+    logger = get_counting_logger(verbose)
     run(command, home, profiles, True, logger)  # Dry run first
 
     if logger.warning.counter > 0:

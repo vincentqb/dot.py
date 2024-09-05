@@ -32,6 +32,7 @@ def parse_args():
         subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
         subparser.add_argument("profiles", nargs="+")
         subparser.add_argument("--home", nargs="?", default="~")
+        subparser.add_argument("-v", "--verbose", action="count", default=0)
         subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
         subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
     return vars(parser.parse_args())
