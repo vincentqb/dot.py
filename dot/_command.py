@@ -4,21 +4,19 @@ from pathlib import Path
 from string import Template
 
 from ._logger import get_counting_logger
-from ._utils import get_env
 
 
-def render_recurse(candidate, rendered, dotfile, dry_run, logger):
+def render_recurse(*, candidate, dotfile, render_recursively, dry_run, logger, **_):
     """
     Render templates recursively.
     """
-    if get_env("DOT_RR"):
-        for subcandidate in sorted(candidate.glob("**/*.template")):
-            if subcandidate.is_file():
-                subrendered = re.sub(".template$", "", str(subcandidate))
-                render_single(subcandidate, subrendered, dotfile, dry_run, logger)
+    for subcandidate in sorted(candidate.glob("**/*.template")):
+        if subcandidate.is_file():
+            subrendered = re.sub(".template$", "", str(subcandidate))
+            render_single(subcandidate, subrendered, dotfile, render_recursively, dry_run, logger)
 
 
-def render_single(candidate, rendered, dotfile, dry_run, logger):
+def render_single(*, candidate, rendered, dry_run, logger, **_):
     """
     Render a template.
     """
@@ -31,7 +29,7 @@ def render_single(candidate, rendered, dotfile, dry_run, logger):
         logger.info(f"File {rendered} created.")
 
 
-def link(candidate, rendered, dotfile, dry_run, logger):
+def link(*, rendered, dotfile, dry_run, logger, **_):
     """
     Link dotfiles to files in given profile directories.
     """
@@ -50,7 +48,7 @@ def link(candidate, rendered, dotfile, dry_run, logger):
     return logger.info(f"File {dotfile} links to {rendered} as expected")
 
 
-def unlink(candidate, rendered, dotfile, dry_run, logger):
+def unlink(*, rendered, dotfile, dry_run, logger, **_):
     """
     Unlink dotfiles linked to files in given profile directories.
     """
@@ -69,7 +67,7 @@ def unlink(candidate, rendered, dotfile, dry_run, logger):
     return logger.info(f"File {dotfile} unlinked from {rendered}")
 
 
-def run(command, home, profiles, dry_run, logger):
+def run(command, home, profiles, render_recursively, dry_run, logger):
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
         return logger.warning(f"Folder {home} does not exist")
@@ -92,19 +90,26 @@ def run(command, home, profiles, dry_run, logger):
                 dotfile = home / ("." + re.sub(".template$", "", name))
             # Run user requested command
             for func in commands[command]:
-                func(candidate, rendered, dotfile, dry_run, logger)
+                func(
+                    candidate=candidate,
+                    rendered=rendered,
+                    dotfile=dotfile,
+                    render_recursively=render_recursively,
+                    dry_run=dry_run,
+                    logger=logger,
+                )
 
 
-def dot(command, home, profiles, dry_run):
-    logger = get_counting_logger(dry_run)
-    run(command, home, profiles, True, logger)  # Dry run first
+def dot(command, home, profiles, render_recursively, dry_run, verbose):
+    logger = get_counting_logger(verbose)
+    run(command, home, profiles, render_recursively, True, logger)  # Dry run first
 
     if logger.warning.counter > 0:
         logger.error("Error: There were conflicts. Exiting without changing dotfiles.")
         raise SystemExit(1)
 
     if not dry_run:
-        run(command, home, profiles, dry_run, logger)  # Wet run second
+        run(command, home, profiles, render_recursively, dry_run, logger)  # Wet run second
 
 
 commands = {"link": [render_recurse, render_single, link], "unlink": [unlink]}

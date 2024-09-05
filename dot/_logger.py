@@ -1,6 +1,6 @@
 import logging
 
-from ._utils import get_env, standardize
+from ._utils import standardize
 
 
 class ColoredFormatter(logging.Formatter):
@@ -29,13 +29,13 @@ class CallCounter:
         return self.method(*args, **kwargs)
 
 
-def get_counting_logger(dry_run):
-    if get_env("DOT_DEBUG"):
-        level = logging.DEBUG
-    elif dry_run:
+def get_counting_logger(verbose):
+    if verbose == 0:
+        level = logging.WARNING
+    elif verbose == 1:
         level = logging.INFO
     else:
-        level = logging.WARNING
+        level = logging.DEBUG
 
     handler = logging.StreamHandler()
     handler.setLevel(level)
