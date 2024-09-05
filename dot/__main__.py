@@ -10,10 +10,6 @@ from ._utils import standardize
 
 
 class ColoredArgumentParser(ArgumentParser):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.prog = str(vars(sys.modules[__name__])["__package__"])
-
     def print_usage(self, file=None):
         if file is None:
             file = sys.stdout
@@ -30,7 +26,7 @@ class ColoredArgumentParser(ArgumentParser):
 
 
 def parse_args():
-    parser = ColoredArgumentParser(description=__doc__)
+    parser = ColoredArgumentParser(prog="dot.py", description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     for key, funcs in commands.items():
         subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
