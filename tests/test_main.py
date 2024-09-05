@@ -15,7 +15,7 @@ def test_system_exit(root, command, home_folder, dry_run, caplog):
     profile = root / "not_a_profile"
 
     with pytest.raises(SystemExit):
-        dot(command=command, home=str(home), profiles=[str(profile)], verbose=0, dry_run=dry_run)
+        dot(command=command, home=str(home), profiles=[str(profile)], dry_run=dry_run, verbose=0)
 
     assert len(caplog.records) == 2  # TODO may wish to also show profile warnings
     assert home.is_dir() != (home_folder != "home")
@@ -31,23 +31,23 @@ def test_link_unlink_profile(root):
     with open(candidate, "w") as fp:
         fp.write("set -o vi")
 
-    dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
+    dot(command="link", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
     assert not (home / ".bashrc").is_symlink()
 
-    dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+    dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
     assert (home / ".bashrc").is_symlink()
 
     with redirect_stderr(StringIO()) as captured:
-        dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
-        dot(command="link", home=str(home), profiles=[str(profile)], verbose=1, dry_run=False)
-        dot(command="link", home=str(home), profiles=[str(profile)], verbose=2, dry_run=False)
+        dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
+        dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=1)
+        dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=2)
     captured = captured.getvalue().split("\n")
     assert len(captured) == 0 + (1 + 1) + (1 + 1)
 
-    dot(command="unlink", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
+    dot(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
     assert (home / ".bashrc").is_symlink()
 
-    dot(command="unlink", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+    dot(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
     assert not (home / ".bashrc").is_symlink()
 
 
@@ -64,11 +64,11 @@ def test_link_unlink_template_recursive(root, dot_rr):
 
     with set_env(DOT_RR=str(int(dot_rr))):
         with set_env(APP_SECRET_KEY="abc123"):
-            dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
+            dot(command="link", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
             assert not (candidate.parent / "env").exists()
             assert not (target / "env").exists()
 
-            dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+            dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
             assert (not dot_rr) != (candidate.parent / "env").exists()
             assert (not dot_rr) != (target / "env").exists()
 
@@ -76,7 +76,7 @@ def test_link_unlink_template_recursive(root, dot_rr):
             with open(target / "env", "r") as fp:
                 assert fp.read() == "export APP_SECRET_KEY=abc123"
 
-        dot(command="unlink", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
+        dot(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
         assert (not dot_rr) != (candidate.parent / "env").exists()
         assert (not dot_rr) != (target / "env").exists()
 
@@ -84,7 +84,7 @@ def test_link_unlink_template_recursive(root, dot_rr):
             with open(target / "env", "r") as fp:
                 assert fp.read() == "export APP_SECRET_KEY=abc123"
 
-        dot(command="unlink", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+        dot(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
         assert (not dot_rr) != (candidate.parent / "env").exists()
         assert not (target / "env").exists()
 
@@ -99,12 +99,12 @@ def test_link_unlink_template(root):
         fp.write("export APP_SECRET_KEY=$APP_SECRET_KEY")
 
     with set_env(APP_SECRET_KEY="abc123"):
-        dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
+        dot(command="link", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
         assert not (profile / "env.rendered").exists()
         assert not (target / ".env.rendered").exists()
         assert not (target / ".env").is_symlink()
 
-        dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+        dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
         assert (profile / "env.rendered").exists()
         assert not (target / ".env.rendered").exists()
         assert (target / ".env").is_symlink()
@@ -112,7 +112,7 @@ def test_link_unlink_template(root):
     with open(target / ".env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
 
-    dot(command="unlink", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
+    dot(command="unlink", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
     assert (profile / "env.rendered").exists()
     assert not (target / ".env.rendered").exists()
     assert (target / ".env").is_symlink()
@@ -120,7 +120,7 @@ def test_link_unlink_template(root):
     with open(target / ".env", "r") as fp:
         assert fp.read() == "export APP_SECRET_KEY=abc123"
 
-    dot(command="unlink", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+    dot(command="unlink", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
     assert (profile / "env.rendered").exists()
     assert not (target / ".env.rendered").exists()
     assert not (target / ".env").is_symlink()
@@ -135,10 +135,10 @@ def test_link_rendered_folder(root):
     with open(candidate, "w") as fp:
         fp.write("set -o vi")
 
-    dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
+    dot(command="link", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
     assert not (home / ".folder.rendered").is_symlink()
 
-    dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+    dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
     assert (home / ".folder.rendered").is_symlink()
 
 
@@ -151,10 +151,10 @@ def test_link_template_folder(root):
     with open(candidate, "w") as fp:
         fp.write("set -o vi")
 
-    dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
+    dot(command="link", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
     assert not (profile / "folder.rendered").exists()
     assert not (home / ".folder.template").is_symlink()
 
-    dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+    dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
     assert not (profile / "folder.rendered").exists()
     assert (home / ".folder.template").is_symlink()
