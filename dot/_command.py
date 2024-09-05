@@ -7,7 +7,7 @@ from ._logger import get_counting_logger
 from ._utils import get_env
 
 
-def render_recurse(candidate, rendered, dotfile, dry_run, logger):
+def render_recurse(*, candidate, dry_run, logger, **_):
     """
     Render templates recursively.
     """
@@ -15,10 +15,10 @@ def render_recurse(candidate, rendered, dotfile, dry_run, logger):
         for subcandidate in sorted(candidate.glob("**/*.template")):
             if subcandidate.is_file():
                 subrendered = re.sub(".template$", "", str(subcandidate))
-                render_single(subcandidate, subrendered, dotfile, dry_run, logger)
+                render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
 
 
-def render_single(candidate, rendered, dotfile, dry_run, logger):
+def render_single(*, candidate, rendered, dry_run, logger, **_):
     """
     Render a template.
     """
@@ -31,7 +31,7 @@ def render_single(candidate, rendered, dotfile, dry_run, logger):
         logger.info(f"File {rendered} created.")
 
 
-def link(candidate, rendered, dotfile, dry_run, logger):
+def link(*, rendered, dotfile, dry_run, logger, **_):
     """
     Link dotfiles to files in given profile directories.
     """
@@ -50,7 +50,7 @@ def link(candidate, rendered, dotfile, dry_run, logger):
     return logger.info(f"File {dotfile} links to {rendered} as expected")
 
 
-def unlink(candidate, rendered, dotfile, dry_run, logger):
+def unlink(*, rendered, dotfile, dry_run, logger, **_):
     """
     Unlink dotfiles linked to files in given profile directories.
     """
@@ -92,7 +92,7 @@ def run(command, home, profiles, dry_run, logger):
                 dotfile = home / ("." + re.sub(".template$", "", name))
             # Run user requested command
             for func in commands[command]:
-                func(candidate, rendered, dotfile, dry_run, logger)
+                func(candidate=candidate, rendered=rendered, dotfile=dotfile, dry_run=dry_run, logger=logger)
 
 
 def dot(command, home, profiles, dry_run):
