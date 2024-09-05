@@ -104,6 +104,7 @@ def dot(command, home, profiles, verbose, dry_run):
         raise SystemExit(1)
 
     if not dry_run:
+        logger = get_counting_logger(0)
         run(command, home, profiles, dry_run, logger)  # Wet run second
 
 

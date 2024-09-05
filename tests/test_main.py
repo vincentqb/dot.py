@@ -1,3 +1,6 @@
+from contextlib import redirect_stderr
+from io import StringIO
+
 import pytest
 from conftest import set_env
 
@@ -33,6 +36,13 @@ def test_link_unlink_profile(root):
 
     dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
     assert (home / ".bashrc").is_symlink()
+
+    with redirect_stderr(StringIO()) as captured:
+        dot(command="link", home=str(home), profiles=[str(profile)], verbose=0, dry_run=False)
+        dot(command="link", home=str(home), profiles=[str(profile)], verbose=1, dry_run=False)
+        dot(command="link", home=str(home), profiles=[str(profile)], verbose=2, dry_run=False)
+    captured = captured.getvalue().split("\n")
+    assert len(captured) == 0 + (1 + 1) + (1 + 1)
 
     dot(command="unlink", home=str(home), profiles=[str(profile)], verbose=0, dry_run=True)
     assert (home / ".bashrc").is_symlink()
