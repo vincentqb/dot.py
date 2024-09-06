@@ -8,7 +8,7 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3"
 ]
-description = "dotpy is a minimalist python script for managing dotfiles via symbolic links."
+description = "dot.py is a minimalist python script for managing dotfiles via symbolic links."
 name = "dot.py"
 readme = "README.md"
 requires-python = ">=3.6"
@@ -21,8 +21,7 @@ dev = ["codespell", "coverage", "pre-commit", "pytest", "ruff>=0.5.3"]
 "dot.py" = "_dot:dot_from_args"
 
 [project.urls]
-"Bug Tracker" = "https://github.com/vincentqb/dotpy/"
-"Homepage" = "https://github.com/vincentqb/dotpy/"
+"Homepage" = "https://github.com/vincentqb/dot.py/"
 
 [tool.coverage.report]
 fail_under = 70

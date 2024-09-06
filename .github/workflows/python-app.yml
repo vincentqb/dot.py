@@ -47,7 +47,7 @@ jobs:
     name: Publish
     environment:
       name: pypi
-      url: https://pypi.org/p/dotpy
+      url: https://pypi.org/project/dot.py/
     permissions:
       id-token: write
     runs-on: ubuntu-latest
