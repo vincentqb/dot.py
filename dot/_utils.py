@@ -1,5 +1,3 @@
-import os
-
 COLORS = {
     "blue": "\x1b[36;20m",
     "green": "\x1b[32;20m",
@@ -26,7 +24,3 @@ def capitalize(message):
 
 def standardize(message, color=None):
     return colorize(capitalize(message), color)
-
-
-def get_env(key):
-    return os.environ.get(key, "false").lower() in ("true", "t", "1")
