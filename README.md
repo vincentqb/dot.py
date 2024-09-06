@@ -41,10 +41,10 @@ Values which need to be set in a file when dot.py is run can be placed in a temp
    export SECRET_KEY=$ENV_SECRET_KEY
    ```
 
-1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile. (A leading space tells the fish shell to drop the line from its history.)
+1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile.
 
    ```sh
-    env ENV_SECRET_KEY=test1234 dot.py link default
+   env ENV_SECRET_KEY=test1234 dot.py link default
    ```
 
 1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/bashrc.rendered` being created and linked to `~/.bashrc` with the below contents.
