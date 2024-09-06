@@ -12,7 +12,7 @@ description = "dot.py is a minimalist python script for managing dotfiles via sy
 name = "dot.py"
 readme = "README.md"
 requires-python = ">=3.6"
-version = "1.2.0"
+version = "1.3.0"
 
 [project.optional-dependencies]
 dev = ["codespell", "coverage", "pre-commit", "pytest", "ruff>=0.5.3"]
