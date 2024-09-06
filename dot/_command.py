@@ -4,18 +4,16 @@ from pathlib import Path
 from string import Template
 
 from ._logger import get_counting_logger
-from ._utils import get_env
 
 
 def render_recurse(*, candidate, dry_run, logger, **_):
     """
     Render templates recursively.
     """
-    if get_env("DOT_RR"):
-        for subcandidate in sorted(candidate.glob("**/*.template")):
-            if subcandidate.is_file():
-                subrendered = re.sub(".template$", "", str(subcandidate))
-                render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
+    for subcandidate in sorted(candidate.glob("**/*.template")):
+        if subcandidate.is_file():
+            subrendered = re.sub(".template$", "", str(subcandidate))
+            render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
 
 
 def render_single(*, candidate, rendered, dry_run, logger, **_):
