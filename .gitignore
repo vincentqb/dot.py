@@ -1,3 +1,4 @@
+**/*.rendered
 **/__pycache__/
 **/.coverage
 dist/
