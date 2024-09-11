@@ -13,7 +13,7 @@
    or run directly from the repository and run with `~/dot.py/dot.py` below
 
    ```sh
-   git clone https://github.com/vincentqb/dot.py ~/dot.py
+   git clone https://github.com/vincentqb/dot.py ~/dot.py/
    ```
 
 1. Create your initial profile. For example, you can create a directory called `default`.

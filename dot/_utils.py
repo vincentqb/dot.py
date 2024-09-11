@@ -10,7 +10,7 @@ COLORS = {
 
 
 def colorize(message, color):
-    return f"{COLORS.get(color, '')}{message}{COLORS['reset']}"
+    return f"{COLORS.get(color, 'reset')}{message}{COLORS['reset']}"
 
 
 def capitalize(message):
