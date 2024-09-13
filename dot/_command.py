@@ -12,6 +12,7 @@ def render_recurse(*, candidate, dry_run, logger, **_):
     """
     for subcandidate in sorted(candidate.glob("**/*.template")):
         if subcandidate.is_file():
+            # NOTE file.template -> .file
             subrendered = re.sub(".template$", "", str(subcandidate))
             render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
 
@@ -86,6 +87,7 @@ def run(command, home, profiles, dry_run, logger):
                 rendered = candidate
                 dotfile = home / ("." + name)
             else:
+                # NOTE file.template -> file.rendered -> .file
                 rendered = candidate.parent / re.sub(".template$", ".rendered", name)
                 dotfile = home / ("." + re.sub(".template$", "", name))
             # Run user requested command
