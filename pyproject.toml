@@ -31,7 +31,7 @@ show_missing = false
 omit = ["tests/*"]
 
 [tool.hatch.build]
-only-include = ["dot", "_dot.py"]
+only-include = ["dot.py", "_dot.py"]
 
 [tool.ruff]
 line-length = 120
