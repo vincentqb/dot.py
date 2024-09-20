@@ -31,7 +31,7 @@ def __dir__():
 
 def standardize(message, color=None):
     def colorize(message, color):
-        return f"{COLORS.get(color, 'reset')}{message}{COLORS['reset']}"
+        return f"{COLORS.get(color, COLORS['reset'])}{message}{COLORS['reset']}"
 
     def capitalize(message):
         """
