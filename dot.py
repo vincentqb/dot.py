@@ -14,34 +14,31 @@ from argparse import ArgumentParser
 from pathlib import Path
 from string import Template
 
-COLORS = {
-    "blue": "\x1b[36;20m",
-    "green": "\x1b[32;20m",
-    "grey": "\x1b[38;20m",
-    "red": "\x1b[31;20m",
-    "red bold": "\x1b[31;1m",
-    "reset": "\x1b[0m",
-    "yellow": "\x1b[33;20m",
-}
-
 
 def __dir__():
     return __ALL__
 
 
 def standardize(message, color=None):
-    def colorize(message, color):
-        return f"{COLORS.get(color, COLORS['reset'])}{message}{COLORS['reset']}"
+    """
+    Apply color and capitalize the first word of each line.
+    """
 
-    def capitalize(message):
-        """
-        Capitalize the first word of each line.
-        """
-        return "\n".join(
-            (m[0].upper() if len(m) > 0 else "") + (m[1:] if len(m) > 1 else "") for m in message.split("\n")
-        )
+    COLORS = {
+        "blue": "\x1b[36;20m",
+        "green": "\x1b[32;20m",
+        "grey": "\x1b[38;20m",
+        "red": "\x1b[31;20m",
+        "red bold": "\x1b[31;1m",
+        "reset": "\x1b[0m",
+        "yellow": "\x1b[33;20m",
+    }
 
-    return colorize(capitalize(message), color)
+    return (
+        COLORS.get(color, COLORS["reset"])
+        + "\n".join((m[0].upper() if len(m) > 0 else "") + (m[1:] if len(m) > 1 else "") for m in message.split("\n"))
+        + COLORS.get(color, COLORS["reset"])
+    )
 
 
 def get_counting_logger(verbose):
