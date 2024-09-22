@@ -3,6 +3,11 @@ import subprocess
 import pytest
 from conftest import skipna
 
+# Test each of:
+# dot.py --help
+# ./dot.py --help
+# PYTHONPATH=./ python -m dot --help
+
 
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
 @pytest.mark.parametrize("command", ["link", "unlink"])

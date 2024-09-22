@@ -25,9 +25,6 @@ jobs:
       run: |
         pip install --upgrade pip
         pip install .[dev]
-    - name: Pre-Commit
-      run: |
-        pre-commit install
     - name: Lint
       run: |
         codespell .
@@ -37,11 +34,6 @@ jobs:
       run: |
         coverage run -m pytest
         coverage report
-    - name: Run
-      run: |
-        dot.py --help
-        ./dot.py --help
-        PYTHONPATH=./ python -m dot --help
 
   publish:
     name: Publish
