@@ -88,15 +88,18 @@ def get_counting_logger(verbose):
     return logger
 
 
-def render_recurse(*, candidate, dry_run, logger, **_):
+def render_link_recurse(*, candidate, dry_run, logger, **_):
     """
     Render templates recursively.
     """
     for subcandidate in sorted(candidate.glob("**/*.template")):
         if subcandidate.is_file():
-            # NOTE file.template -> .file
-            subrendered = re.sub(".template$", "", str(subcandidate))
+            # NOTE file.template -> file.rendered -> file
+            subname = subcandidate.name
+            subrendered = subcandidate.parent / re.sub(".template$", ".rendered", subname)
+            subdotfile = subcandidate.parent / re.sub(".template$", "", subname)
             render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
+            link(rendered=subrendered, dotfile=subdotfile, dry_run=dry_run, logger=logger)
 
 
 def render_single(*, candidate, rendered, dry_run, logger, **_):
@@ -221,7 +224,7 @@ def dot_from_args(*, prog="dot.py"):
     dot(**parse_args(prog))
 
 
-commands = {"link": [render_recurse, render_single, link], "unlink": [unlink]}
+commands = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
 
 if __name__ == "__main__":
     dot_from_args(prog="dot")

@@ -63,11 +63,15 @@ def test_link_unlink_template_recursive(root):
 
     with set_env(APP_SECRET_KEY="abc123"):
         dot(command="link", home=str(home), profiles=[str(profile)], dry_run=True, verbose=0)
+        assert not (candidate.parent / "env.rendered").exists()
         assert not (candidate.parent / "env").exists()
+        assert not (target / "env.rendered").exists()
         assert not (target / "env").exists()
 
         dot(command="link", home=str(home), profiles=[str(profile)], dry_run=False, verbose=0)
+        assert (candidate.parent / "env.rendered").exists()
         assert (candidate.parent / "env").exists()
+        assert (target / "env.rendered").exists()
         assert (target / "env").exists()
 
     with open(target / "env", "r") as fp:
