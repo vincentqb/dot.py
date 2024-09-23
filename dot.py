@@ -150,6 +150,9 @@ def unlink(*, rendered, dotfile, dry_run, logger, **_):
     return logger.info(f"File {dotfile} unlinked from {rendered}")
 
 
+commands = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
+
+
 def run(command, home, profiles, dry_run, logger):
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
@@ -220,8 +223,6 @@ def dot_from_args(*, prog="dot.py"):
 
     dot(**parse_args(prog))
 
-
-commands = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
 
 if __name__ == "__main__":
     dot_from_args(prog="dot")
