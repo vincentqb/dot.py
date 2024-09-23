@@ -19,11 +19,7 @@ def __dir__():
     return __ALL__
 
 
-def standardize(message, color=None):
-    """
-    Apply color and capitalize the first word of each line.
-    """
-
+class ColoredFormatter(logging.Formatter):
     COLORS = {
         "blue": "\x1b[36;20m",
         "green": "\x1b[32;20m",
@@ -34,28 +30,33 @@ def standardize(message, color=None):
         "yellow": "\x1b[33;20m",
     }
 
-    return (
-        COLORS.get(color, COLORS["reset"])
-        + "\n".join((m[0].upper() if len(m) > 0 else "") + (m[1:] if len(m) > 1 else "") for m in message.split("\n"))
-        + COLORS.get(color, COLORS["reset"])
-    )
+    LEVELS_TO_COLOR = {
+        logging.DEBUG: "grey",
+        logging.INFO: "green",
+        logging.WARNING: "yellow",
+        logging.ERROR: "red",
+        logging.CRITICAL: "red bold",
+    }
+
+    def format_(self, msg, levelno):
+        color = self.LEVELS_TO_COLOR.get(levelno)
+        color = self.COLORS.get(color, self.COLORS["reset"])
+        # Apply color and capitalize the first word of each line
+        return (
+            color
+            + "\n".join((m[0].upper() if len(m) > 0 else "") + (m[1:] if len(m) > 1 else "") for m in msg.split("\n"))
+            + self.COLORS["reset"]
+        )
+
+    def format(self, record):
+        record.msg = self.format_(record.msg, record.levelno)
+        return logging.Formatter().format(record)
+
+
+formatter = ColoredFormatter()
 
 
 def get_counting_logger(verbose):
-    class ColoredFormatter(logging.Formatter):
-        colors = {
-            logging.DEBUG: "grey",
-            logging.INFO: "green",
-            logging.WARNING: "yellow",
-            logging.ERROR: "red",
-            logging.CRITICAL: "red bold",
-        }
-
-        def format(self, record):
-            color = self.colors.get(record.levelno)
-            record.msg = standardize(record.msg, color)
-            return logging.Formatter().format(record)
-
     class CallCounter:
         def __init__(self, method):
             self.method = method
@@ -74,7 +75,7 @@ def get_counting_logger(verbose):
 
     handler = logging.StreamHandler()
     handler.setLevel(level)
-    handler.setFormatter(ColoredFormatter())
+    handler.setFormatter(formatter)
 
     logger = logging.getLogger()
     logger.setLevel(level)
@@ -195,16 +196,16 @@ def dot_from_args(*, prog="dot.py"):
             def print_usage(self, file=None):
                 if file is None:
                     file = sys.stdout
-                self._print_message(standardize(self.format_usage(), "yellow"), file)
+                self._print_message(formatter.format_(self.format_usage(), logging.WARNING), file)
 
             def print_help(self, file=None):
                 if file is None:
                     file = sys.stdout
-                self._print_message(standardize(self.format_help()), file)
+                self._print_message(formatter.format_(self.format_help(), logging.INFO), file)
 
             def error(self, message):
                 self.print_usage(sys.stderr)
-                self.exit(2, standardize(f"Error: {self.prog}: {message.strip()}", "red") + "\n")
+                self.exit(2, formatter.format_(f"Error: {self.prog}: {message.strip()}", logging.ERROR) + "\n")
 
         parser = ColoredArgumentParser(prog=prog, description=__doc__)
         subparsers = parser.add_subparsers(dest="command", required=True)
