@@ -89,14 +89,15 @@ def render_link_recurse(*, candidate, dry_run, logger, **_):
     """
     Render templates recursively.
     """
-    for subcandidate in sorted(candidate.glob("**/*.template")):
-        if subcandidate.is_file():
-            # NOTE file.template -> file.rendered -> file
-            subname = subcandidate.name
-            subrendered = subcandidate.parent / re.sub(".template$", ".rendered", subname)
-            subdotfile = subcandidate.parent / re.sub(".template$", "", subname)
-            render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
-            link(rendered=subrendered, dotfile=subdotfile, dry_run=dry_run, logger=logger)
+    if False:  # Deactivating since submodules may have .template files in them
+        for subcandidate in sorted(candidate.glob("**/*.template")):
+            if subcandidate.is_file():
+                # NOTE file.template -> file.rendered -> file
+                subname = subcandidate.name
+                subrendered = subcandidate.parent / re.sub(".template$", ".rendered", subname)
+                subdotfile = subcandidate.parent / re.sub(".template$", "", subname)
+                render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
+                link(rendered=subrendered, dotfile=subdotfile, dry_run=dry_run, logger=logger)
 
 
 def render_single(*, candidate, rendered, dry_run, logger, **_):
