@@ -43,19 +43,18 @@ def standardize(message, color=None):
 
 def get_counting_logger(verbose):
     class ColoredFormatter(logging.Formatter):
-        FORMAT = "%(message)s"
-        formats = {
-            logging.DEBUG: standardize(FORMAT, "grey"),
-            logging.INFO: standardize(FORMAT, "green"),
-            logging.WARNING: standardize(FORMAT, "yellow"),
-            logging.ERROR: standardize(FORMAT, "red"),
-            logging.CRITICAL: standardize(FORMAT, "red bold"),
+        colors = {
+            logging.DEBUG: "grey",
+            logging.INFO: "green",
+            logging.WARNING: "yellow",
+            logging.ERROR: "red",
+            logging.CRITICAL: "red bold",
         }
 
         def format(self, record):
-            format = self.formats.get(record.levelno)
-            record.msg = standardize(record.msg)
-            return logging.Formatter(format).format(record)
+            color = self.colors.get(record.levelno)
+            record.msg = standardize(record.msg, color)
+            return logging.Formatter().format(record)
 
     class CallCounter:
         def __init__(self, method):
