@@ -91,7 +91,7 @@ def render_link_recurse(*, candidate, recursive, dry_run, logger, **_):
     """
     # TODO only templates in root, n-deep recursing, or any-deep recursing
     # templates = sorted(candidate.glob("*.template"))
-    templates = sorted(sum([list(candidate.glob("/".join("*" * n) + ".template")) for n in range(recursive)], []))
+    templates = sorted(sum([list(candidate.glob("/".join("*" * r) + ".template")) for r in range(recursive)], []))
     # templates = sorted(candidate.glob("**/*.template"))
     for subcandidate in templates:
         if subcandidate.is_file():
