@@ -234,7 +234,7 @@ def dot_from_args(*, prog="dot.py"):
                 "--recursive",
                 action="count",
                 default=1,
-                help="increase depth of recusion when rendering templates",
+                help="increase depth of recursion when rendering templates",
             )
             subparser.add_argument("-v", "--verbose", action="count", default=0)
             subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
