@@ -85,19 +85,24 @@ def get_counting_logger(verbose):
     return logger
 
 
-def render_link_recurse(*, candidate, dry_run, logger, **_):
+def render_link_recurse(*, candidate, recursive, dry_run, logger, **_):
     """
     Render templates recursively.
     """
-    if False:  # Deactivating since submodules may have .template files in them
-        for subcandidate in sorted(candidate.glob("**/*.template")):
-            if subcandidate.is_file():
-                # NOTE file.template -> file.rendered -> file
-                subname = subcandidate.name
-                subrendered = subcandidate.parent / re.sub(".template$", ".rendered", subname)
-                subdotfile = subcandidate.parent / re.sub(".template$", "", subname)
-                render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
-                link(rendered=subrendered, dotfile=subdotfile, dry_run=dry_run, logger=logger)
+    # TODO only templates in root, n-deep recursing, or any-deep recursing
+    # templates = sorted(candidate.glob("*.template"))
+    templates = sorted(
+        sum([list(candidate.glob("/".join(["*" for _ in range(n)]) + ".template")) for n in range(recursive)], [])
+    )
+    # templates = sorted(candidate.glob("**/*.template"))
+    for subcandidate in templates:
+        if subcandidate.is_file():
+            # NOTE file.template -> file.rendered -> file
+            subname = subcandidate.name
+            subrendered = subcandidate.parent / re.sub(".template$", ".rendered", subname)
+            subdotfile = subcandidate.parent / re.sub(".template$", "", subname)
+            render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
+            link(rendered=subrendered, dotfile=subdotfile, dry_run=dry_run, logger=logger)
 
 
 def render_single(*, candidate, rendered, dry_run, logger, **_):
@@ -154,7 +159,7 @@ def unlink(*, rendered, dotfile, dry_run, logger, **_):
 commands = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
 
 
-def run(command, home, profiles, dry_run, logger):
+def run(command, home, profiles, recursive, dry_run, logger):
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
         return logger.warning(f"Folder {home} does not exist")
@@ -178,20 +183,27 @@ def run(command, home, profiles, dry_run, logger):
                 dotfile = home / ("." + re.sub(".template$", "", name))
             # Run user requested command
             for func in commands[command]:
-                func(candidate=candidate, rendered=rendered, dotfile=dotfile, dry_run=dry_run, logger=logger)
+                func(
+                    candidate=candidate,
+                    rendered=rendered,
+                    dotfile=dotfile,
+                    recursive=recursive,
+                    dry_run=dry_run,
+                    logger=logger,
+                )
 
 
-def dot(command, home, profiles, dry_run, verbose):
-    logger = get_counting_logger(verbose)
-    run(command, home, profiles, True, logger)  # Dry run first
+def dot(command, home, profiles, recursive, dry_run, verbose):
+    logger = get_counting_logger(verbose=verbose)
+    run(command, home, profiles, recursive=recursive, dry_run=True, logger=logger)  # Dry run first
 
     if logger.warning.counter > 0:
         logger.error("Error: There were conflicts. Exiting without changing dotfiles.")
         raise SystemExit(1)
 
     if not dry_run:
-        logger = get_counting_logger(0)
-        run(command, home, profiles, dry_run, logger)  # Wet run second
+        logger = get_counting_logger(verbose=0)
+        run(command, home, profiles, recursive=recursive, dry_run=dry_run, logger=logger)  # Wet run second
 
 
 def dot_from_args(*, prog="dot.py"):
@@ -218,6 +230,7 @@ def dot_from_args(*, prog="dot.py"):
             subparser.add_argument("profiles", nargs="+")
             subparser.add_argument("--home", nargs="?", default="~")
             subparser.add_argument("-v", "--verbose", action="count", default=0)
+            subparser.add_argument("-r", "--recursive", action="count", default=1)
             subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
             subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
         return vars(parser.parse_args())
