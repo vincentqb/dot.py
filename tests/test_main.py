@@ -18,6 +18,12 @@ def test_system_exit(root, command, home_folder, dry_run, caplog):
         dot(command=command, home=str(home), profiles=[str(profile)], recursive=1, dry_run=dry_run, verbose=0)
 
     assert len(caplog.records) == 2  # TODO may wish to also show profile warnings
+    assert caplog.records[0].msg.startswith("\x1b[33;20m")
+    assert caplog.records[0].msg.endswith("\x1b[0m")
+    assert caplog.records[0].levelname == "WARNING"
+    assert caplog.records[1].msg.startswith("\x1b[31;20m")
+    assert caplog.records[1].msg.endswith("\x1b[0m")
+    assert caplog.records[1].levelname == "ERROR"
     assert home.is_dir() != (home_folder != "home")
     assert not profile.is_dir()
 
