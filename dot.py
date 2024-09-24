@@ -217,7 +217,7 @@ def dot_from_args(*, prog="dot.py"):
             def print_help(self, file=None):
                 if file is None:
                     file = sys.stdout
-                self._print_message(formatter.format_(self.format_help(), logging.INFO), file)
+                self._print_message(formatter.format_(self.format_help(), logging.DEBUG), file)
 
             def error(self, message):
                 self.print_usage(sys.stderr)
