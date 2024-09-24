@@ -229,8 +229,14 @@ def dot_from_args(*, prog="dot.py"):
             subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
             subparser.add_argument("profiles", nargs="+")
             subparser.add_argument("--home", nargs="?", default="~")
+            subparser.add_argument(
+                "-r",
+                "--recursive",
+                action="count",
+                default=1,
+                help="increase depth of recusion when rendering templates",
+            )
             subparser.add_argument("-v", "--verbose", action="count", default=0)
-            subparser.add_argument("-r", "--recursive", action="count", default=1)
             subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
             subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
         return vars(parser.parse_args())
