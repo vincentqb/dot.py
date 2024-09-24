@@ -58,7 +58,7 @@ Values which need to be set in a file when dot.py is run can be placed in a temp
    export SECRET_KEY=test1234
    ```
 
-1. Be sure to include `**/*.rendered` in `.gitignore` [like so](https://github.com/vincentqb/dot.py/blob/main/.gitignore#L1) if you put your dotfiles into a git repository.
+1. Be sure to include `**/*.rendered` in `.gitignore` if you put your dotfiles into a git repository.
 
 ## Development
 

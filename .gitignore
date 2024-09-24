@@ -1,5 +1,3 @@
-**/*.rendered
-**/__pycache__/
 **/.coverage
+**/__pycache__/
 dist/
-requirements.txt
