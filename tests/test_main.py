@@ -1,10 +1,14 @@
+import sys
 from contextlib import redirect_stderr
 from io import StringIO
 
 import pytest
 from conftest import set_env
 
-from dot import dot
+# Workaround in WSL to drop paths with bin causing circular dependency
+sys.path = [p for p in sys.path if not p.endswith("bin")]
+
+from dot import dot  # noqa
 
 
 @pytest.mark.parametrize("command", ["link", "unlink"])
