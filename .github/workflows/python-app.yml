@@ -24,7 +24,7 @@ jobs:
         uv python install
     - name: Install
       run: |
-        uv pip install .
+        uv pip install --system .
     - name: Lint
       run: |
         uv tool run codespell .
