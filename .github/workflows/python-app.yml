@@ -22,9 +22,11 @@ jobs:
     - name: Set up Python
       run: |
         uv python install
-    - name: Install
+    - name: Install package
       run: |
-        uv pip install --system .
+        uv venv
+        source .venv/bin/activate
+        uv pip install .
     - name: Lint
       run: |
         uv tool run codespell .
