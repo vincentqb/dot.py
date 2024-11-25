@@ -20,7 +20,12 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v3
     - name: Set up Python
-      run: uv python install
+      run: |
+        uv self update
+        uv python install
+    - name: Install
+      run: |
+        uv pip install .
     - name: Lint
       run: |
         uv tool run codespell .
@@ -30,8 +35,6 @@ jobs:
       run: |
         uv tool run --with "pytest" coverage run -m pytest
         uv tool run coverage report
-    - name: Build
-      run: uv build
 
   publish:
     name: Publish
@@ -48,8 +51,11 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v3
     - name: Set up Python
-      run: uv python install
+      run: |
+        uv python install
     - name: Build
-      run: uv build
+      run: |
+        uv build
     - name: Publish
-      run: uv publish -t ${{ secrets.PYPI_TOKEN }}
+      run: |
+        uv publish -t ${{ secrets.PYPI_TOKEN }}
