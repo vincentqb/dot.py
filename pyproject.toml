@@ -35,3 +35,6 @@ line-length = 120
 
 [tool.ruff.lint]
 extend-select = ["C901", "I", "RUF022"]
+
+[tool.uv]
+package = true
