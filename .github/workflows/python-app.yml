@@ -24,8 +24,6 @@ jobs:
         uv python install
     - name: Install package
       run: |
-        uv venv
-        source .venv/bin/activate
         uv pip install .[dev]
     - name: Lint
       run: |
