@@ -26,16 +26,16 @@ jobs:
       run: |
         uv venv
         source .venv/bin/activate
-        uv pip install .
+        uv pip install .[dev]
     - name: Lint
       run: |
-        uv tool run codespell .
-        uv tool run ruff check .
-        uv tool run ruff format . --diff
+        codespell .
+        ruff check .
+        ruff format . --diff
     - name: Test
       run: |
-        uv tool run --with "pytest" coverage run -m pytest
-        uv tool run coverage report
+        coverage run -m pytest
+        coverage report
 
   publish:
     name: Publish
