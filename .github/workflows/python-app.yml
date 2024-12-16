@@ -59,7 +59,10 @@ jobs:
     - name: Validate Tag
       run: |
         uv python install
-        uv run validate_version.py
+        uv venv
+        source .venv/bin/activate
+        uv pip install dist/*.whl
+        python3 validate_version.py
     - name: Publish
       run: |
         echo
