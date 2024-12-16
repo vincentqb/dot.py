@@ -58,6 +58,7 @@ jobs:
         uv build
     - name: Validate Tag
       run: |
+        git describe --tags --abbrev=0
         uv python install
         uv venv
         source .venv/bin/activate
