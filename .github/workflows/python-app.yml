@@ -32,6 +32,7 @@ jobs:
         codespell .
         ruff check .
         ruff format . --diff
+        pytype
     - name: Test
       run: |
         coverage run -m pytest

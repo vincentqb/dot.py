@@ -3,8 +3,8 @@
 Manage links to dotfiles.
 """
 
-__all__ = ["dot"]
-__ALL__ = dir() + __all__
+__all__: list[str] = ["dot"]
+__ALL__: list[str] = dir() + __all__
 
 import logging
 import os
@@ -13,14 +13,15 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from string import Template
+from typing import Callable
 
 
-def __dir__():
+def __dir__() -> list[str]:
     return __ALL__
 
 
 class ColoredFormatter(logging.Formatter):
-    COLORS = {
+    COLORS: dict[str, str] = {
         "blue": "\x1b[36;20m",
         "green": "\x1b[32;20m",
         "grey": "\x1b[38;20m",
@@ -30,7 +31,7 @@ class ColoredFormatter(logging.Formatter):
         "yellow": "\x1b[33;20m",
     }
 
-    LEVELS_TO_COLOR = {
+    LEVELS_TO_COLOR: dict[int, str] = {
         logging.DEBUG: "grey",
         logging.INFO: "green",
         logging.WARNING: "yellow",
@@ -38,7 +39,7 @@ class ColoredFormatter(logging.Formatter):
         logging.CRITICAL: "red bold",
     }
 
-    def format_(self, msg, levelno):
+    def format_(self, msg, levelno) -> str:
         color = self.LEVELS_TO_COLOR.get(levelno)
         color = self.COLORS.get(color, self.COLORS["reset"])
         # Apply color and capitalize the first word of each line
@@ -48,15 +49,15 @@ class ColoredFormatter(logging.Formatter):
             + self.COLORS["reset"]
         )
 
-    def format(self, record):
+    def format(self, record) -> str:
         record.msg = self.format_(record.msg, record.levelno)
         return logging.Formatter().format(record)
 
 
-formatter = ColoredFormatter()
+formatter: ColoredFormatter = ColoredFormatter()
 
 
-def get_counting_logger(verbose):
+def get_counting_logger(verbose) -> logging.Logger:
     class CallCounter:
         def __init__(self, method):
             self.method = method
@@ -85,7 +86,7 @@ def get_counting_logger(verbose):
     return logger
 
 
-def render_link_recurse(*, candidate, recursive, dry_run, logger, **_):
+def render_link_recurse(*, candidate, recursive, dry_run, logger, **_) -> None:
     """
     Render templates recursively.
     """
@@ -103,7 +104,7 @@ def render_link_recurse(*, candidate, recursive, dry_run, logger, **_):
             link(rendered=subrendered, dotfile=subdotfile, dry_run=dry_run, logger=logger)
 
 
-def render_single(*, candidate, rendered, dry_run, logger, **_):
+def render_single(*, candidate, rendered, dry_run, logger, **_) -> None:
     """
     Render a template.
     """
@@ -154,7 +155,7 @@ def unlink(*, rendered, dotfile, dry_run, logger, **_):
     return logger.info(f"File {dotfile} unlinked from {rendered}")
 
 
-commands = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
+commands: dict[str, list[Callable]] = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
 
 
 def run(command, home, profiles, recursive, dry_run, logger):
@@ -191,7 +192,7 @@ def run(command, home, profiles, recursive, dry_run, logger):
                 )
 
 
-def dot(command, home, profiles, recursive, dry_run, verbose):
+def dot(command, home, profiles, recursive, dry_run, verbose) -> None:
     logger = get_counting_logger(verbose=verbose)
     run(command, home, profiles, recursive=recursive, dry_run=True, logger=logger)  # Dry run first
 
@@ -204,7 +205,7 @@ def dot(command, home, profiles, recursive, dry_run, verbose):
         run(command, home, profiles, recursive=recursive, dry_run=dry_run, logger=logger)  # Wet run second
 
 
-def dot_from_args(*, prog="dot.py"):
+def dot_from_args(*, prog="dot.py") -> None:
     def parse_args(prog):
         class ColoredArgumentParser(ArgumentParser):
             def print_usage(self, file=None):

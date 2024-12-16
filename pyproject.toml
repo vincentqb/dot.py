@@ -20,6 +20,7 @@ dev = [
   "coverage",
   "pre-commit",
   "pytest",
+  "pytype",
   "ruff>=0.5.3; python_version>='3.7'",
   "ruff<0.5.3; python_version=='3.6'"
 ]
@@ -39,6 +40,9 @@ omit = ["tests/*"]
 
 [tool.hatch.build]
 only-include = ["dot.py", "_dot.py"]
+
+[tool.pytype]
+inputs = ['dot.py']
 
 [tool.ruff]
 line-length = 120
