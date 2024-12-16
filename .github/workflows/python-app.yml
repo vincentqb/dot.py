@@ -56,7 +56,8 @@ jobs:
         uv build
     - name: Validate Tag
       run: |
-        ./validate_tag.sh
+        uv python install
+        uv run validate_tag.py
     - name: Publish
       run: |
         echo
