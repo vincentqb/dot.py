@@ -2,7 +2,8 @@ version = 1
 requires-python = ">=3.6"
 resolution-markers = [
     "python_full_version < '3.7'",
-    "python_full_version >= '3.7'",
+    "python_full_version >= '3.7' and python_full_version < '3.9'",
+    "python_full_version >= '3.9'",
 ]
 
 [[package]]
@@ -191,7 +192,7 @@ version = "4.8.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.8'" },
-    { name = "zipp" },
+    { name = "zipp", marker = "python_full_version < '3.9'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/85/ed/e65128cc5cb1580f22ee3009d9187ecdfcc43ffb3b581fe854b24e87d8e7/importlib_metadata-4.8.3.tar.gz", hash = "sha256:766abffff765960fcc18003801f7044eb6755ffae4521c8e8ce8e83b9c9b0668", size = 41979 }
 wheels = [
@@ -554,7 +555,8 @@ name = "ruff"
 version = "0.8.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.7'",
+    "python_full_version >= '3.7' and python_full_version < '3.9'",
+    "python_full_version >= '3.9'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/95/d0/8ff5b189d125f4260f2255d143bf2fa413b69c2610c405ace7a0a8ec81ec/ruff-0.8.1.tar.gz", hash = "sha256:3583db9a6450364ed5ca3f3b4225958b24f78178908d5c4bc0f46251ccca898f", size = 3313222 }
 wheels = [
