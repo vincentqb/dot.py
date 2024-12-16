@@ -27,11 +27,13 @@ jobs:
     - name: Install package
       run: |
         uv pip install .[dev]
-    - name: Lint
+    - name: Check lint
       run: |
         codespell .
         ruff check .
         ruff format . --diff
+    - name: Check typing
+      run: |
         pytype
     - name: Test
       run: |
@@ -57,7 +59,7 @@ jobs:
     - name: Validate Tag
       run: |
         uv python install
-        uv run validate_tag.py
+        uv run validate_version.py
     - name: Publish
       run: |
         echo
