@@ -66,5 +66,7 @@ jobs:
         uv pip install dist/*.whl
         python3 validate_version.py
     - name: Publish
-      run: |
-        uv publish -t ${{ secrets.PYPI_TOKEN }}
+    - run: |
+        uv publish
+      env:
+        UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
