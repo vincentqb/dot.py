@@ -54,6 +54,10 @@ jobs:
     - name: Build
       run: |
         uv build
+    - name: Validate Tag
+      run: |
+        uv pip install dist/*.whl
+        ./validate_tag.sh
     - name: Publish
       run: |
         uv publish -t ${{ secrets.PYPI_TOKEN }}
