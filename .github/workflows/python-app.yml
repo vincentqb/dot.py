@@ -67,6 +67,4 @@ jobs:
         python3 validate_version.py
     - name: Publish
       run: |
-        uv publish
-      env:
-        UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        uv publish --trusted-publishing always
