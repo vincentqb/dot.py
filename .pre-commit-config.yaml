@@ -6,14 +6,14 @@ repos:
     additional_dependencies:
     - tomli  # if one configures using pyproject.toml
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
+  rev: v5.0.0
   hooks:
   - id: end-of-file-fixer
   - id: mixed-line-ending
   - id: trailing-whitespace
   - id: check-toml
-- repo: https://github.com/executablebooks/mdformat
-  rev: 0.7.17
+- repo: https://github.com/hukkin/mdformat
+  rev: 0.7.19
   hooks:
   - id: mdformat
     additional_dependencies:
@@ -28,7 +28,7 @@ repos:
   - id: pretty-format-yaml
     args: [--autofix]
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.6.2
+  rev: v0.8.3
   hooks:
     # Run linter
   - id: ruff
