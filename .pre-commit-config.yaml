@@ -37,3 +37,7 @@ repos:
     # Run formatter
   - id: ruff-format
     types_or: [python, pyi]
+- repo: https://github.com/astral-sh/uv-pre-commit
+  rev: 0.5.9
+  hooks:
+  - id: uv-lock
