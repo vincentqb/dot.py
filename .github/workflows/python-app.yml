@@ -37,7 +37,7 @@ jobs:
         pytype
     - name: Test
       run: |
-        coverage run -m pytest
+        coverage run -m pytest tests/unit/
         coverage report
 
   publish:
@@ -58,13 +58,16 @@ jobs:
     - name: Build
       run: |
         uv build
-    - name: Validate Tag
+    - name: Set up Python
       run: |
         uv python install
         uv venv
         source .venv/bin/activate
+        echo PATH=$PATH >> $GITHUB_ENV
+    - name: Validate Tag
+      run: |
         uv pip install dist/*.whl
-        python3 validate_version.py
+        python3 tests/version.py
     - name: Publish
       run: |
         uv publish --trusted-publishing always

@@ -26,14 +26,10 @@ def get_version_from_pyproject():
         return "v" + data["project"]["version"]
 
 
-versions = [
-    get_version_from_git(),
-    get_version_from_package(),
-    get_version_from_pyproject(),
-]
-print(versions)
-
-if all(v == versions[0] for v in versions):
-    exit(0)
-
-exit(1)
+if __name__ == "__main__":
+    versions = [
+        get_version_from_git(),
+        get_version_from_package(),
+        get_version_from_pyproject(),
+    ]
+    assert all(v == versions[0] for v in versions), f"Versions are different: {versions}"
