@@ -36,7 +36,7 @@ fail_under = 70
 show_missing = false
 
 [tool.coverage.run]
-omit = ["tests/*"]
+include = ["dot.py", "_dot.py"]
 
 [tool.hatch.build]
 only-include = ["dot.py", "_dot.py"]
