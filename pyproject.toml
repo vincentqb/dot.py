@@ -32,11 +32,11 @@ dev = [
 "Homepage" = "https://github.com/vincentqb/dot.py/"
 
 [tool.coverage.report]
-fail_under = 70
+fail_under = 80
 show_missing = false
 
 [tool.coverage.run]
-include = ["dot.py", "_dot.py"]
+source = ["."]
 
 [tool.hatch.build]
 only-include = ["dot.py", "_dot.py"]
