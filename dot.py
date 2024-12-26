@@ -40,8 +40,8 @@ class ColoredFormatter(logging.Formatter):
     }
 
     def format_(self, msg, levelno) -> str:
-        color = self.LEVELS_TO_COLOR.get(levelno)
-        color = self.COLORS.get(color, self.COLORS["reset"])
+        color = self.LEVELS_TO_COLOR.get(levelno, "reset")
+        color = self.COLORS[color]
         # Apply color and capitalize the first word of each line
         return (
             color
