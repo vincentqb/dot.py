@@ -10,7 +10,7 @@ import logging
 import os
 import re
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, BooleanOptionalAction
 from pathlib import Path
 from string import Template
 from typing import Callable
@@ -236,8 +236,7 @@ def dot_from_args(*, prog="dot.py") -> None:
                 help="increase depth of recursion when rendering templates",
             )
             subparser.add_argument("-v", "--verbose", action="count", default=0)
-            subparser.add_argument("-d", "--dry-run", default=False, action="store_true")
-            subparser.add_argument("--no-dry-run", dest="dry_run", action="store_false")
+            subparser.add_argument("-d", "--dry-run", default=False, action=BooleanOptionalAction)
         return vars(parser.parse_args())
 
     dot(**parse_args(prog))

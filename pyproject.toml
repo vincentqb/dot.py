@@ -11,7 +11,7 @@ classifiers = [
 description = "dot.py is a minimalist python script for managing dotfiles via symbolic links."
 name = "dot.py"
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 version = "1.5.1"
 
 [project.optional-dependencies]
@@ -21,8 +21,7 @@ dev = [
   "pre-commit",
   "pytest",
   "pytype",
-  "ruff>=0.5.3; python_version>='3.7'",
-  "ruff<0.5.3; python_version=='3.6'"
+  "ruff>=0.5.3"
 ]
 
 [project.scripts]
