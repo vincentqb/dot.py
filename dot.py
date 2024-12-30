@@ -49,7 +49,7 @@ class ColoredFormatter(logging.Formatter):
             + self.COLORS["reset"]
         )
 
-    def format(self, record) -> str:
+    def format(self, record: logging.LogRecord) -> str:
         record.msg = self.format_(record.msg, record.levelno)
         return logging.Formatter().format(record)
 
@@ -205,7 +205,7 @@ def dot(command, home, profiles, recursive, dry_run, verbose) -> None:
         run(command, home, profiles, recursive=recursive, dry_run=dry_run, logger=logger)  # Wet run second
 
 
-def dot_from_args(*, prog="dot.py") -> None:
+def dot_from_args(*, prog: str = "dot.py") -> None:
     def parse_args(prog):
         class ColoredArgumentParser(ArgumentParser):
             def print_usage(self, file=None):
