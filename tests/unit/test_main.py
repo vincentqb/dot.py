@@ -49,10 +49,18 @@ def test_link_unlink_profile(root):
 
     with redirect_stderr(StringIO()) as captured:
         dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=0)
+    captured = captured.getvalue().split("\n")
+    assert len(captured) == 1
+
+    with redirect_stderr(StringIO()) as captured:
         dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=1)
+    captured = captured.getvalue().split("\n")
+    assert len(captured) == 1
+
+    with redirect_stderr(StringIO()) as captured:
         dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=2)
     captured = captured.getvalue().split("\n")
-    assert len(captured) == 0 + (1 + 1) + (1 + 1)
+    assert len(captured) == 1
 
     dot(command="unlink", home=str(home), profiles=[str(profile)], recursive=1, dry_run=True, verbose=0)
     assert (home / ".bashrc").is_symlink()

@@ -54,39 +54,18 @@ class ColoredFormatter(logging.Formatter):
         return logging.Formatter().format(record)
 
 
-formatter: ColoredFormatter = ColoredFormatter()
-
-
-def get_counting_logger(verbose) -> logging.Logger:
-    class CallCounter:
-        def __init__(self, method):
-            self.method = method
-            self.counter = 0
-
-        def __call__(self, *args, **kwargs):
-            self.counter += 1
-            return self.method(*args, **kwargs)
-
-    if verbose == 0:
-        level = logging.WARNING
-    elif verbose == 1:
-        level = logging.INFO
-    else:
-        level = logging.DEBUG
+def get_logger() -> logging.Logger:
+    logger = logging.getLogger()
 
     handler = logging.StreamHandler()
-    handler.setLevel(level)
+    handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)
-
-    logger = logging.getLogger()
-    logger.setLevel(level)
     logger.addHandler(handler)
 
-    logger.warning = CallCounter(logger.warning)
     return logger
 
 
-def render_link_recurse(*, candidate, recursive, dry_run, logger, **_) -> None:
+def render_link_recurse(*, candidate, recursive, queue, **_) -> None:
     """
     Render templates recursively.
     """
@@ -100,30 +79,37 @@ def render_link_recurse(*, candidate, recursive, dry_run, logger, **_) -> None:
             subname = subcandidate.name
             subrendered = subcandidate.parent / re.sub(".template$", ".rendered", subname)
             subdotfile = subcandidate.parent / re.sub(".template$", "", subname)
-            render_single(candidate=subcandidate, rendered=subrendered, dry_run=dry_run, logger=logger)
-            link(rendered=subrendered, dotfile=subdotfile, dry_run=dry_run, logger=logger)
+            render_single(candidate=subcandidate, rendered=subrendered, queue=queue)
+            link(rendered=subrendered, dotfile=subdotfile, queue=queue)
 
 
-def render_single(*, candidate, rendered, dry_run, logger, **_) -> None:
+def render_single(*, candidate, rendered, queue, **_) -> None:
     """
     Render a template.
     """
+
     if candidate != rendered:
-        if not dry_run:
+
+        def func():
             with open(candidate, "r", encoding="utf-8") as candidate_file:
                 with open(rendered, "w", encoding="utf-8") as rendered_file:
                     content = Template(candidate_file.read()).safe_substitute(os.environ)
                     rendered_file.write(content)
+
+        queue.append(func)
         logger.info(f"File {rendered} created.")
 
 
-def link(*, rendered, dotfile, dry_run, logger, **_):
+def link(*, rendered, dotfile, queue, **_):
     """
     Link dotfiles to files in given profile directories.
     """
     if not dotfile.exists():
-        if not dry_run:
+
+        def func():
             dotfile.symlink_to(rendered)
+
+        queue.append(func)
         return logger.info(f"File {dotfile} created and linked to {rendered}")
 
     if not dotfile.is_symlink():
@@ -136,7 +122,7 @@ def link(*, rendered, dotfile, dry_run, logger, **_):
     return logger.info(f"File {dotfile} links to {rendered} as expected")
 
 
-def unlink(*, rendered, dotfile, dry_run, logger, **_):
+def unlink(*, rendered, dotfile, queue, **_):
     """
     Unlink dotfiles linked to files in given profile directories.
     """
@@ -150,15 +136,14 @@ def unlink(*, rendered, dotfile, dry_run, logger, **_):
     if dotfile_link != rendered:
         return logger.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
 
-    if not dry_run:
+    def func():
         dotfile.unlink()
+
+    queue.append(func)
     return logger.info(f"File {dotfile} unlinked from {rendered}")
 
 
-commands: dict[str, list[Callable]] = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
-
-
-def run(command, home, profiles, recursive, dry_run, logger):
+def run(command, home, profiles, recursive, queue):
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
         return logger.warning(f"Folder {home} does not exist")
@@ -187,22 +172,54 @@ def run(command, home, profiles, recursive, dry_run, logger):
                     rendered=rendered,
                     dotfile=dotfile,
                     recursive=recursive,
-                    dry_run=dry_run,
-                    logger=logger,
+                    queue=queue,
                 )
 
 
+class AddWarningTrackerHandlerContext:
+    def __init__(self):
+        class WarningTrackerHandler(logging.Handler):
+            def __init__(self):
+                super().__init__()
+                self.warning_called = False
+
+            def emit(self, record):
+                if record.levelno == logging.WARNING:
+                    self.warning_called = True
+
+        self.handler = WarningTrackerHandler()
+
+    def __enter__(self):
+        logger.addHandler(self.handler)
+        return self.handler
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        logger.removeHandler(self.handler)
+
+
 def dot(command, home, profiles, recursive, dry_run, verbose) -> None:
-    logger = get_counting_logger(verbose=verbose)
-    run(command, home, profiles, recursive=recursive, dry_run=True, logger=logger)  # Dry run first
+    if verbose == 0:
+        level = logging.WARNING
+    elif verbose == 1:
+        level = logging.INFO
+    else:
+        level = logging.DEBUG
+    logger.setLevel(level)
 
-    if logger.warning.counter > 0:
-        logger.error("Error: There were conflicts. Exiting without changing dotfiles.")
-        raise SystemExit(1)
+    # Build queue
+    queue = []
 
+    with AddWarningTrackerHandlerContext():
+        run(command, home, profiles, recursive=recursive, queue=queue)
+
+        if logger.handlers[-1].warning_called:
+            logger.error("Error: There were conflicts. Exiting without changing dotfiles.")
+            raise SystemExit(1)
+
+    # Execute queue
     if not dry_run:
-        logger = get_counting_logger(verbose=0)
-        run(command, home, profiles, recursive=recursive, dry_run=dry_run, logger=logger)  # Wet run second
+        for func in queue:
+            func()
 
 
 def dot_from_args(*, prog: str = "dot.py") -> None:
@@ -240,6 +257,11 @@ def dot_from_args(*, prog: str = "dot.py") -> None:
         return vars(parser.parse_args())
 
     dot(**parse_args(prog))
+
+
+formatter: ColoredFormatter = ColoredFormatter()
+logger: logging.Logger = get_logger()
+commands: dict[str, list[Callable]] = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
 
 
 if __name__ == "__main__":
