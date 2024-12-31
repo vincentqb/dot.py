@@ -209,10 +209,10 @@ def dot(command, home, profiles, recursive, dry_run, verbose) -> None:
     # Build queue
     queue = []
 
-    with AddWarningTrackerHandlerContext():
+    with AddWarningTrackerHandlerContext() as handler:
         run(command, home, profiles, recursive=recursive, queue=queue)
 
-        if logger.handlers[-1].warning_called:
+        if handler.warning_called:
             logger.error("Error: There were conflicts. Exiting without changing dotfiles.")
             raise SystemExit(1)
 
