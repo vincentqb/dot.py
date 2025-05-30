@@ -21,6 +21,8 @@ dev = [
   "pre-commit",
   "pytest",
   "pytype",
+  "tomli",
+  "ty",
   "ruff>=0.5.3"
 ]
 
@@ -41,13 +43,19 @@ source = ["."]
 only-include = ["dot.py", "_dot.py"]
 
 [tool.pytype]
-inputs = ['dot.py']
+inputs = ["dot.py"]
 
 [tool.ruff]
 line-length = 120
 
 [tool.ruff.lint]
 extend-select = ["C901", "I", "RUF022"]
+
+[tool.ty.rules]
+invalid-assignment = "warn"
+missing-argument = "ignore"
+unresolved-attribute = "warn"
+unresolved-import = "warn"
 
 [tool.uv]
 package = true

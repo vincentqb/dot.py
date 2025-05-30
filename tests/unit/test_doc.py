@@ -9,11 +9,14 @@ doc_mapping = {
 def test_doc_module():
     from dot import __doc__ as doc
 
-    assert doc.strip() == "Manage links to dotfiles."
+    assert doc is not None
+    assert str(doc).strip() == "Manage links to dotfiles."
 
 
 @pytest.mark.parametrize("command,doc", doc_mapping.items())
 def test_doc_mapping(command, doc):
     from dot import commands
 
-    assert doc == commands[command][-1].__doc__.strip()
+    docstring = commands[command][-1].__doc__
+    assert docstring is not None
+    assert str(docstring).strip() == doc

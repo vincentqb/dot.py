@@ -2,8 +2,12 @@
 
 import importlib.metadata
 import subprocess
+import sys
 
-import tomllib
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 
 def get_version_from_git():

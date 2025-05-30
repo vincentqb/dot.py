@@ -34,6 +34,7 @@ jobs:
     - name: Check typing
       run: |
         pytype
+        ty check
     - name: Test
       run: |
         coverage run -m pytest
