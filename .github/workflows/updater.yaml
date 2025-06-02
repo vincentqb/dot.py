@@ -1,20 +1,23 @@
-# https://github.com/marketplace/actions/github-actions-version-updater
 name: GitHub Actions Version Updater
 
+# Controls when the action will run.
 on:
   schedule:
-  - cron: 0 0 * * 0  # Automatically run on every Sunday
+    # Automatically run on every Sunday
+    - cron:  '0 0 * * 0'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.WORKFLOW_SECRET }}  # [Required] Access token with `workflow` scope.
+      - uses: actions/checkout@v4
+        with:
+          # [Required] Access token with `workflow` scope.
+          token: ${{ secrets.WORKFLOW_SECRET }}
 
-    - name: Run GitHub Actions Version Updater
-      uses: saadmk11/github-actions-version-updater@v0.8.1
-      with:
-        token: ${{ secrets.WORKFLOW_SECRET }}  # [Required] Access token with `workflow` scope.
+      - name: Run GitHub Actions Version Updater
+        uses: saadmk11/github-actions-version-updater@v0.8.1
+        with:
+          # [Required] Access token with `workflow` scope.
+          token: ${{ secrets.WORKFLOW_SECRET }}
