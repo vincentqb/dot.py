@@ -3,7 +3,7 @@ from contextlib import redirect_stderr
 from io import StringIO
 
 import pytest
-from conftest import set_env
+from .test_helpers import set_env
 
 # Workaround in WSL to drop paths with bin causing circular dependency
 sys.path = [p for p in sys.path if not p.endswith("bin")]

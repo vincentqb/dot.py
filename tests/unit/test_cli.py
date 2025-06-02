@@ -1,7 +1,7 @@
 import subprocess
 
 import pytest
-from conftest import skipna
+from .test_helpers import skipna
 
 # Test each of:
 # dot.py --help
