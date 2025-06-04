@@ -31,12 +31,10 @@ repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.11.12
   hooks:
-    # Run linter
-  - id: ruff
+  - id: ruff-check  # Run linter
     types_or: [python, pyi]
     args: [--fix]
-    # Run formatter
-  - id: ruff-format
+  - id: ruff-format  # Run formatter
     types_or: [python, pyi]
 - repo: https://github.com/astral-sh/uv-pre-commit
   rev: 0.7.10
