@@ -17,8 +17,8 @@ jobs:
     - name: Install setuptools
       run: |
         pip install --upgrade setuptools
-    - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0   # v1.0.0
-    - uses: peter-evans/create-pull-request@v7.0.8   # v7.0.8
+    - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
+    - uses: peter-evans/create-pull-request@v7.0.8
       if: always()
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
