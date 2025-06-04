@@ -14,9 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4.2.2
     - uses: actions/setup-python@v5.6.0
-    - name: Install setuptools
-      run: |
-        sudo apt-get install --reinstall python-setuptools
     - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
     - uses: peter-evans/create-pull-request@v7.0.8
       if: always()
