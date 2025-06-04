@@ -10,16 +10,6 @@ on:
 
 jobs:
   auto-update:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4.2.2
-    - uses: actions/setup-python@v5.6.0
-    - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
-    - uses: peter-evans/create-pull-request@v7.0.8
-      if: always()
-      with:
-        token: ${{ secrets.WORKFLOW_SECRET }}
-        branch: update/pre-commit-hooks
-        title: Update pre-commit hooks
-        commit-message: 'chore: update pre-commit hooks'
-        body: Update versions of pre-commit hooks to latest version.
+    uses: browniebroke/github-actions/.github/workflows/pre-commit-autoupdate.yml@v1
+    secrets:
+      gh_pat: ${{ secrets.WORKFLOW_SECRET }}

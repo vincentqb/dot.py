@@ -15,7 +15,6 @@ jobs:
     - uses: actions/checkout@v4.2.2
       with:
         token: ${{ secrets.WORKFLOW_SECRET }}
-
     - name: Run GitHub Actions Version Updater
       uses: saadmk11/github-actions-version-updater@v0.8.1
       with:
