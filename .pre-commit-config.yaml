@@ -18,7 +18,7 @@ repos:
   - id: mdformat
     additional_dependencies:
     - mdformat-gfm  # use github flavor markdown
-    - mdformat-beautysh  # format bash code block with beautysh
+    # - mdformat-beautysh  # format bash code block with beautysh
     - mdformat-ruff
     - ruff
 - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
