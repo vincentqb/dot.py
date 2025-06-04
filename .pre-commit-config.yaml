@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.3.0
+  rev: v2.4.1
   hooks:
   - id: codespell
     additional_dependencies:
@@ -13,7 +13,7 @@ repos:
   - id: trailing-whitespace
   - id: check-toml
 - repo: https://github.com/hukkin/mdformat
-  rev: 0.7.21
+  rev: 0.7.22
   hooks:
   - id: mdformat
     additional_dependencies:
@@ -29,7 +29,7 @@ repos:
   - id: pretty-format-yaml
     args: [--autofix]
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.8.4
+  rev: v0.11.12
   hooks:
     # Run linter
   - id: ruff
@@ -39,6 +39,6 @@ repos:
   - id: ruff-format
     types_or: [python, pyi]
 - repo: https://github.com/astral-sh/uv-pre-commit
-  rev: 0.5.13
+  rev: 0.7.10
   hooks:
   - id: uv-lock
