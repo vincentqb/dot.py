@@ -1,4 +1,4 @@
-name: GitHub Actions Version Updater
+name: GitHub Actions Version Auto-Update
 
 # Controls when the action will run.
 on:
@@ -9,17 +9,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  auto-update:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
       with:
-          # [Required] Access token with `workflow` scope.
         token: ${{ secrets.WORKFLOW_SECRET }}
 
     - name: Run GitHub Actions Version Updater
       uses: saadmk11/github-actions-version-updater@v0.8.1
       with:
-          # [Required] Access token with `workflow` scope.
         token: ${{ secrets.WORKFLOW_SECRET }}
