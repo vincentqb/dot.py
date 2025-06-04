@@ -5,6 +5,8 @@ on:
   schedule:
     # Automatically run on every Sunday
   - cron: 0 0 * * 0
+  # on demand
+  workflow_dispatch:
 
 jobs:
   build:
