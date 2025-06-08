@@ -13,6 +13,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: browniebroke/github-actions/.github/workflows/pre-commit-autoupdate.yml@v1
+    uses: browniebroke/github-actions/.github/workflows/pre-commit-autoupdate.yml@v1.17.0
     secrets:
       gh_pat: ${{ secrets.WORKFLOW_SECRET }}
