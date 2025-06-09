@@ -4,7 +4,7 @@ name: Pre-Commit Auto-Update
 on:
   schedule:
   # Automatically run on every Sunday
-  - cron: 0 0 * * 0
+  - cron: 0 0 1-7 * 0
   # on demand
   workflow_dispatch:
 
