@@ -3,8 +3,8 @@ name: Pre-Commit Auto-Update
 # Controls when the action will run.
 on:
   schedule:
-  # Automatically run on every Sunday
-  - cron: 0 0 1-7 * 0
+  # on schedule
+  - cron: 0 0 1 1 *
   # on demand
   workflow_dispatch:
 
