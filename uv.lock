@@ -37,6 +37,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/76/c7/d84ea255df01c3544793d479b581032af6948cbd7ff063df3c7cbd533dce/coverage-6.2-cp39-cp39-win_amd64.whl", hash = "sha256:86f2e78b1eff847609b1ca8050c9e1fa3bd44ce755b2ec30e70f2d3ba3844644", size = 183374, upload-time = "2021-11-27T01:39:48.068Z" },
 ]
 
+[package.optional-dependencies]
+toml = [
+    { name = "tomli" },
+]
+
 [[package]]
 name = "dot-py"
 version = "1.5.1"
@@ -44,13 +49,13 @@ source = { editable = "." }
 
 [package.optional-dependencies]
 test = [
-    { name = "coverage" },
+    { name = "coverage", extra = ["toml"] },
     { name = "pytest" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "coverage", marker = "extra == 'test'" },
+    { name = "coverage", extras = ["toml"], marker = "extra == 'test'" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.3.3" },
 ]
 provides-extras = ["test"]
