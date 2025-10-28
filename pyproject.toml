@@ -15,15 +15,9 @@ requires-python = ">=3.9"
 version = "1.5.1"
 
 [project.optional-dependencies]
-dev = [
-  "codespell",
+test = [
   "coverage",
-  "pre-commit",
-  "pytest",
-  "pytype",
-  "tomli",
-  "ty",
-  "ruff>=0.5.3"
+  "pytest"
 ]
 
 [project.scripts]

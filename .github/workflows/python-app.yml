@@ -18,27 +18,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4.2.2
     - uses: astral-sh/setup-uv@v6.3.1
-    - name: Set up Python
-      run: |
-        uv venv
-        source .venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
-    - name: Install package
-      run: |
-        uv pip install .[dev]
     - name: Check lint
       run: |
-        codespell .
-        ruff check .
-        ruff format . --diff
+        uv tool run --with tomli codespell .
+        uv tool run ruff check .
+        uv tool run ruff format . --diff
     - name: Check typing
       run: |
-        pytype
-        ty check
+        uv tool run pytype
+        uv tool run ty check
     - name: Test
       run: |
-        coverage run -m pytest
-        coverage report
+        uv run --with ".[test]" coverage run -m pytest
+        uv run --with ".[test]" coverage report
 
   publish:
     name: Publish
@@ -58,15 +50,9 @@ jobs:
     - name: Build
       run: |
         uv build
-    - name: Set up Python
-      run: |
-        uv venv
-        source .venv/bin/activate
-        echo PATH=$PATH >> $GITHUB_ENV
     - name: Validate Tag
       run: |
-        uv pip install dist/*.whl
-        python3 tests/version.py
+        uv run --with dist/*.whl python tests/version.py
     - name: Publish
       run: |
         uv publish --trusted-publishing always
