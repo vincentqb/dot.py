@@ -17,7 +17,7 @@ version = "1.5.1"
 [project.optional-dependencies]
 test = [
   "coverage",
-  "pytest"
+  "pytest>=8.3.3"
 ]
 
 [project.scripts]
