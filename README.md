@@ -10,6 +10,12 @@
    pip install dot.py
    ```
 
+   or use [uv](https://docs.astral.sh/uv/getting-started/installation/)
+
+   ```sh
+   uvx --python 3.9 --from dot-py dot.py -h
+   ```
+
    or download the script directly and run with `~/dot.py` below
 
    ```sh
