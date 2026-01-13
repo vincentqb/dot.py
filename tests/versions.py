@@ -7,7 +7,7 @@ import sys
 if sys.version_info >= (3, 11):
     import tomllib
 else:
-    import tomli as tomllib
+    import tomli as tomllib  # ty: ignore
 
 
 def get_version_from_git():

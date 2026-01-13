@@ -25,6 +25,7 @@ jobs:
         uv tool run ruff format . --diff
     - name: Check typing
       run: |
+        uv tool install pytest
         uv tool run pytype
         uv tool run ty check
     - name: Test
