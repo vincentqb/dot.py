@@ -25,7 +25,7 @@ jobs:
         uv tool run ruff format . --diff
     - name: Check typing
       run: |
-        uv tool install pytest
+        uv pip install -r pyproject.toml --extra test
         uv tool run pytype
         uv tool run ty check
     - name: Test
