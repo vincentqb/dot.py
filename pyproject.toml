@@ -49,6 +49,9 @@ line-length = 120
 [tool.ruff.lint]
 extend-select = ["C901", "I", "RUF022"]
 
+[tool.ty.environment]
+python-version = "3.11"
+
 [tool.ty.rules]
 invalid-assignment = "warn"
 missing-argument = "ignore"
