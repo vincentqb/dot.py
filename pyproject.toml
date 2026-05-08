@@ -12,7 +12,7 @@ description = "dot.py is a minimalist python script for managing dotfiles via sy
 dynamic = ["version"]
 name = "dot.py"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 test = [
@@ -53,7 +53,7 @@ line-length = 120
 extend-select = ["C901", "I", "RUF022"]
 
 [tool.ty.environment]
-python-version = "3.11"
+python-version = "3.10"
 
 [tool.ty.rules]
 invalid-assignment = "warn"
