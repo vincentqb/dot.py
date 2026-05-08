@@ -3,8 +3,8 @@
 Manage links to dotfiles.
 """
 
-__all__: list[str] = ["dot"]
-__ALL__: list[str] = dir() + __all__
+__all__ = ["dot"]
+__ALL__ = dir() + __all__
 
 import logging
 import os
@@ -13,15 +13,14 @@ import sys
 from argparse import ArgumentParser, BooleanOptionalAction
 from pathlib import Path
 from string import Template
-from typing import Callable
 
 
-def __dir__() -> list[str]:
+def __dir__():
     return __ALL__
 
 
 class ColoredFormatter(logging.Formatter):
-    COLORS: dict[str, str] = {
+    COLORS = {
         "blue": "\x1b[36;20m",
         "green": "\x1b[32;20m",
         "grey": "\x1b[38;20m",
@@ -31,7 +30,7 @@ class ColoredFormatter(logging.Formatter):
         "yellow": "\x1b[33;20m",
     }
 
-    LEVELS_TO_COLOR: dict[int, str] = {
+    LEVELS_TO_COLOR = {
         logging.DEBUG: "grey",
         logging.INFO: "green",
         logging.WARNING: "yellow",
@@ -39,7 +38,7 @@ class ColoredFormatter(logging.Formatter):
         logging.CRITICAL: "red bold",
     }
 
-    def format_(self, msg, levelno) -> str:
+    def format_(self, msg, levelno):
         color = self.LEVELS_TO_COLOR.get(levelno, "reset")
         color = self.COLORS[color]
         # Apply color and capitalize the first word of each line
@@ -49,12 +48,12 @@ class ColoredFormatter(logging.Formatter):
             + self.COLORS["reset"]
         )
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, record):
         record.msg = self.format_(record.msg, record.levelno)
         return logging.Formatter().format(record)
 
 
-def get_logger() -> logging.Logger:
+def get_logger():
     logger = logging.getLogger()
 
     handler = logging.StreamHandler()
@@ -65,7 +64,7 @@ def get_logger() -> logging.Logger:
     return logger
 
 
-def render_link_recurse(*, candidate, recursive, queue, **_) -> None:
+def render_link_recurse(*, candidate, recursive, queue, **_):
     """
     Render templates recursively.
     """
@@ -83,7 +82,7 @@ def render_link_recurse(*, candidate, recursive, queue, **_) -> None:
             link(rendered=subrendered, dotfile=subdotfile, queue=queue)
 
 
-def render_single(*, candidate, rendered, queue, **_) -> None:
+def render_single(*, candidate, rendered, queue, **_):
     """
     Render a template.
     """
@@ -197,7 +196,7 @@ class AddWarningTrackerHandlerContext:
         logger.removeHandler(self.handler)
 
 
-def dot(command, home, profiles, recursive, dry_run, verbose) -> None:
+def dot(command, home, profiles, recursive, dry_run, verbose):
     if verbose == 0:
         level = logging.WARNING
     elif verbose == 1:
@@ -222,7 +221,7 @@ def dot(command, home, profiles, recursive, dry_run, verbose) -> None:
             func()
 
 
-def dot_from_args(*, prog: str = "dot.py") -> None:
+def dot_from_args(*, prog="dot.py"):
     def parse_args(prog):
         class ColoredArgumentParser(ArgumentParser):
             def print_usage(self, file=None):
@@ -259,9 +258,9 @@ def dot_from_args(*, prog: str = "dot.py") -> None:
     dot(**parse_args(prog))
 
 
-formatter: ColoredFormatter = ColoredFormatter()
-logger: logging.Logger = get_logger()
-commands: dict[str, list[Callable]] = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
+formatter = ColoredFormatter()
+logger = get_logger()
+commands = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
 
 
 if __name__ == "__main__":
