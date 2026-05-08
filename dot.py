@@ -8,7 +8,6 @@ __ALL__ = dir() + __all__
 
 import logging
 import os
-import sys
 from argparse import ArgumentParser, BooleanOptionalAction
 from pathlib import Path
 from string import Template
@@ -219,22 +218,7 @@ def dot(command, home, profiles, recursive, dry_run, verbose):
 
 def dot_from_args(*, prog="dot.py"):
     def parse_args(prog):
-        class ColoredArgumentParser(ArgumentParser):
-            def print_usage(self, file=None):
-                if file is None:
-                    file = sys.stdout
-                self._print_message(formatter.format_(self.format_usage(), logging.WARNING), file)
-
-            def print_help(self, file=None):
-                if file is None:
-                    file = sys.stdout
-                self._print_message(formatter.format_(self.format_help(), logging.DEBUG), file)
-
-            def error(self, message):
-                self.print_usage(sys.stderr)
-                self.exit(2, formatter.format_(f"Error: {self.prog}: {message.strip()}", logging.ERROR) + "\n")
-
-        parser = ColoredArgumentParser(prog=prog, description=__doc__)
+        parser = ArgumentParser(prog=prog, description=__doc__)
         subparsers = parser.add_subparsers(dest="command", required=True)
         for key, funcs in commands.items():
             subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
