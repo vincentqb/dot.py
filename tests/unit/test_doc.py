@@ -15,8 +15,8 @@ def test_doc_module():
 
 @pytest.mark.parametrize("command,doc", doc_mapping.items())
 def test_doc_mapping(command, doc):
-    from dot import commands
+    from dot import _COMMANDS
 
-    docstring = commands[command][-1].__doc__
+    docstring = _COMMANDS[command].__doc__
     assert docstring is not None
-    assert str(docstring).strip() == doc
+    assert docstring.strip() == doc

@@ -3,7 +3,7 @@ import importlib
 import pytest
 
 modules = {
-    "dot": ["dot"],
+    "dot": ["dot", "dot_from_args"],
 }
 
 

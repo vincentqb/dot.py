@@ -3,19 +3,21 @@
 Manage links to dotfiles.
 """
 
-__all__ = ["dot"]
-__ALL__ = dir() + __all__
+__all__ = ["dot", "dot_from_args"]
 
 import os
 import sys
 from argparse import ArgumentParser, BooleanOptionalAction
+from dataclasses import dataclass
 from pathlib import Path
 from string import Template
 
 
 def __dir__():
-    return __ALL__
+    return __all__
 
+
+# --- output -----------------------------------------------------------------
 
 _RESET = "\x1b[0m"
 _STYLES = {
@@ -65,162 +67,188 @@ class Printer:
         self._emit("error", msg)
 
 
-def render_link_recurse(*, candidate, recursive, queue, printer, **_):
-    """
-    Render templates recursively.
-    """
-    # TODO only templates in root, n-deep recursing, or any-deep recursing
-    templates = sorted(sum([list(candidate.glob("/".join("*" * r) + ".template")) for r in range(recursive)], []))
-    for subcandidate in templates:
-        if subcandidate.is_file():
-            # NOTE file.template -> file.rendered -> file
-            base = subcandidate.name.removesuffix(".template")
-            subrendered = subcandidate.parent / (base + ".rendered")
-            subdotfile = subcandidate.parent / base
-            render_single(candidate=subcandidate, rendered=subrendered, queue=queue, printer=printer)
-            link(rendered=subrendered, dotfile=subdotfile, queue=queue, printer=printer)
+# --- actions ----------------------------------------------------------------
 
 
-def render_single(*, candidate, rendered, queue, printer, **_):
-    """
-    Render a template.
-    """
+@dataclass(frozen=True, slots=True)
+class Render:
+    """Render a template: read 'source', substitute env vars, write to 'target'."""
 
-    if candidate != rendered:
+    source: Path
+    target: Path
 
-        def func():
-            with open(candidate, "r", encoding="utf-8") as candidate_file:
-                with open(rendered, "w", encoding="utf-8") as rendered_file:
-                    content = Template(candidate_file.read()).safe_substitute(os.environ)
-                    rendered_file.write(content)
-
-        queue.append(func)
-        printer.info(f"File {rendered} created.")
+    def apply(self) -> None:
+        content = Template(self.source.read_text(encoding="utf-8")).safe_substitute(os.environ)
+        self.target.write_text(content, encoding="utf-8")
 
 
-def link(*, rendered, dotfile, queue, printer, **_):
-    """
-    Link dotfiles to files in given profile directories.
-    """
+@dataclass(frozen=True, slots=True)
+class Symlink:
+    """Create a symbolic link at 'target' pointing to 'source'."""
+
+    source: Path
+    target: Path
+
+    def apply(self) -> None:
+        self.target.symlink_to(self.source)
+
+
+@dataclass(frozen=True, slots=True)
+class Unlink:
+    """Remove the symlink at 'target'. 'source' is retained for context."""
+
+    source: Path
+    target: Path
+
+    def apply(self) -> None:
+        self.target.unlink()
+
+
+# --- planners ---------------------------------------------------------------
+
+
+def _plan_render(candidate, rendered, printer):
+    """Render a template."""
+    if candidate == rendered:
+        return None
+    printer.info(f"File {rendered} created.")
+    return Render(candidate, rendered)
+
+
+def _plan_link(rendered, dotfile, printer):
+    """Link dotfiles to files in given profile directories."""
     if not dotfile.exists():
-
-        def func():
-            dotfile.symlink_to(rendered)
-
-        queue.append(func)
         printer.info(f"File {dotfile} created and linked to {rendered}")
-        return
-
+        return Symlink(rendered, dotfile)
     if not dotfile.is_symlink():
         printer.warning(f"File {dotfile} exists but is not a link")
-        return
-
-    dotfile_link = dotfile.readlink()
-    if dotfile_link != rendered:
-        printer.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
-        return
-
+        return None
+    actual = dotfile.readlink()
+    if actual != rendered:
+        printer.warning(f"File {dotfile} exists and points to {actual} instead of {rendered}")
+        return None
     printer.info(f"File {dotfile} links to {rendered} as expected")
+    return None
 
 
-def unlink(*, rendered, dotfile, queue, printer, **_):
-    """
-    Unlink dotfiles linked to files in given profile directories.
-    """
+def _plan_unlink(rendered, dotfile, printer):
+    """Unlink dotfiles linked to files in given profile directories."""
     if not dotfile.exists():
         printer.warning(f"File {dotfile} does not exist")
-        return
-
+        return None
     if not dotfile.is_symlink():
         printer.warning(f"File {dotfile} exists but is not a link")
-        return
-
-    dotfile_link = dotfile.readlink()
-    if dotfile_link != rendered:
-        printer.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
-        return
-
-    def func():
-        dotfile.unlink()
-
-    queue.append(func)
+        return None
+    actual = dotfile.readlink()
+    if actual != rendered:
+        printer.warning(f"File {dotfile} exists and points to {actual} instead of {rendered}")
+        return None
     printer.info(f"File {dotfile} unlinked from {rendered}")
+    return Unlink(rendered, dotfile)
 
 
-def run(command, home, profiles, recursive, queue, printer):
-    home = Path(home).expanduser().resolve()
-    if not home.is_dir():
-        printer.warning(f"Folder {home} does not exist")
-        return
-    for profile in profiles:
-        profile = Path(profile).expanduser().resolve()
-        if not profile.is_dir():
-            printer.warning(f"Profile {profile} does not exist")
+# --- walk + core ------------------------------------------------------------
+
+
+def _walk(profile, home, printer):
+    """Yield (candidate, rendered, dotfile) for each top-level entry in the profile."""
+    for candidate in sorted(profile.glob("*")):
+        name = candidate.name
+        if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
+            printer.debug(f"File {candidate} ignored.")
             continue
-        for candidate in sorted(profile.glob("*")):
-            name = candidate.name
-            if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
-                printer.debug(f"File {candidate} ignored.")
-                continue
-            # Add dot prefix and replace template when needed
-            if candidate.is_dir():
-                rendered = candidate
-                dotfile = home / ("." + name)
-            else:
-                # NOTE file.template -> file.rendered -> .file
-                base = name.removesuffix(".template")
-                rendered = candidate.parent / (base + ".rendered") if name.endswith(".template") else candidate
-                dotfile = home / ("." + base)
-            # Run user requested command
-            for func in commands[command]:
-                func(
-                    candidate=candidate,
-                    rendered=rendered,
-                    dotfile=dotfile,
-                    recursive=recursive,
-                    queue=queue,
-                    printer=printer,
-                )
+        if candidate.is_dir():
+            yield candidate, candidate, home / f".{name}"
+        else:
+            base = name.removesuffix(".template")
+            rendered = candidate.parent / (base + ".rendered") if name.endswith(".template") else candidate
+            dotfile = home / ("." + base)
+            yield candidate, rendered, dotfile
+
+
+def _nested_templates(folder, recursive):
+    """Yield (template, rendered, link) for each template nested inside a directory."""
+    for depth in range(recursive):
+        pattern = "/".join(["*"] * depth) + ".template" if depth else ".template"
+        for tmpl in sorted(folder.glob(pattern)):
+            if tmpl.is_file():
+                base = tmpl.name.removesuffix(".template")
+                yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
+
+
+def _plan_link_all(candidate, rendered, dotfile, recursive, printer):
+    """Queue render + symlink actions for one top-level entry, plus any nested templates."""
+    out = []
+    if a := _plan_render(candidate, rendered, printer):
+        out.append(a)
+    if a := _plan_link(rendered, dotfile, printer):
+        out.append(a)
+    if candidate.is_dir():
+        for tsrc, tdst, tlink in _nested_templates(candidate, recursive):
+            if a := _plan_render(tsrc, tdst, printer):
+                out.append(a)
+            if a := _plan_link(tdst, tlink, printer):
+                out.append(a)
+    return out
 
 
 def dot(command, home, profiles, recursive, dry_run, verbose):
     printer = Printer(verbose=verbose)
     queue = []
 
-    run(command, home, profiles, recursive=recursive, queue=queue, printer=printer)
+    home = Path(home).expanduser().resolve()
+    if not home.is_dir():
+        printer.warning(f"Folder {home} does not exist")
+    else:
+        for p in profiles:
+            profile = Path(p).expanduser().resolve()
+            if not profile.is_dir():
+                printer.warning(f"Profile {profile} does not exist")
+                continue
+            for candidate, rendered, dotfile in _walk(profile, home, printer):
+                if command == "link":
+                    # Nested templates inside directories are rendered and
+                    # linked in-place. Intentionally not unlinked: 'unlink'
+                    # leaves the profile partially rendered so a subsequent
+                    # 'link' does not have to re-render.
+                    queue.extend(_plan_link_all(candidate, rendered, dotfile, recursive, printer))
+                elif a := _plan_unlink(rendered, dotfile, printer):
+                    queue.append(a)
 
     if printer.warnings:
         printer.error("Error: There were conflicts. Exiting without changing dotfiles.")
         raise SystemExit(1)
 
     if not dry_run:
-        for func in queue:
-            func()
+        for action in queue:
+            action.apply()
+
+
+# --- CLI --------------------------------------------------------------------
+
+_COMMANDS = {
+    "link": _plan_link,
+    "unlink": _plan_unlink,
+}
 
 
 def dot_from_args(*, prog="dot.py"):
-    def parse_args(prog):
-        parser = ArgumentParser(prog=prog, description=__doc__)
-        subparsers = parser.add_subparsers(dest="command", required=True)
-        for key, funcs in commands.items():
-            subparser = subparsers.add_parser(key, description=funcs[-1].__doc__)
-            subparser.add_argument("profiles", nargs="+")
-            subparser.add_argument("--home", nargs="?", default="~")
-            subparser.add_argument(
-                "-r",
-                "--recursive",
-                action="count",
-                default=1,
-                help="increase depth of recursion when rendering templates",
-            )
-            subparser.add_argument("-v", "--verbose", action="count", default=0)
-            subparser.add_argument("-d", "--dry-run", default=False, action=BooleanOptionalAction)
-        return vars(parser.parse_args())
-
-    dot(**parse_args(prog))
-
-
-commands = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
+    parser = ArgumentParser(prog=prog, description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    for cmd, fn in _COMMANDS.items():
+        sp = subparsers.add_parser(cmd, description=fn.__doc__)
+        sp.add_argument("profiles", nargs="+")
+        sp.add_argument("--home", nargs="?", default="~")
+        sp.add_argument(
+            "-r",
+            "--recursive",
+            action="count",
+            default=1,
+            help="increase depth of recursion when rendering templates",
+        )
+        sp.add_argument("-v", "--verbose", action="count", default=0)
+        sp.add_argument("-d", "--dry-run", default=False, action=BooleanOptionalAction)
+    dot(**vars(parser.parse_args()))
 
 
 if __name__ == "__main__":
