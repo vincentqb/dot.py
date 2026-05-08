@@ -8,7 +8,6 @@ __ALL__ = dir() + __all__
 
 import logging
 import os
-import re
 import sys
 from argparse import ArgumentParser, BooleanOptionalAction
 from pathlib import Path
@@ -42,11 +41,7 @@ class ColoredFormatter(logging.Formatter):
         color = self.LEVELS_TO_COLOR.get(levelno, "reset")
         color = self.COLORS[color]
         # Apply color and capitalize the first word of each line
-        return (
-            color
-            + "\n".join((m[0].upper() if len(m) > 0 else "") + (m[1:] if len(m) > 1 else "") for m in msg.split("\n"))
-            + self.COLORS["reset"]
-        )
+        return color + "\n".join(m[:1].upper() + m[1:] for m in msg.split("\n")) + self.COLORS["reset"]
 
     def format(self, record):
         record.msg = self.format_(record.msg, record.levelno)
@@ -75,9 +70,9 @@ def render_link_recurse(*, candidate, recursive, queue, **_):
     for subcandidate in templates:
         if subcandidate.is_file():
             # NOTE file.template -> file.rendered -> file
-            subname = subcandidate.name
-            subrendered = subcandidate.parent / re.sub(".template$", ".rendered", subname)
-            subdotfile = subcandidate.parent / re.sub(".template$", "", subname)
+            base = subcandidate.name.removesuffix(".template")
+            subrendered = subcandidate.parent / (base + ".rendered")
+            subdotfile = subcandidate.parent / base
             render_single(candidate=subcandidate, rendered=subrendered, queue=queue)
             link(rendered=subrendered, dotfile=subdotfile, queue=queue)
 
@@ -126,7 +121,7 @@ def unlink(*, rendered, dotfile, queue, **_):
     Unlink dotfiles linked to files in given profile directories.
     """
     if not dotfile.exists():
-        return logger.warning(f"File {dotfile} does not exists")
+        return logger.warning(f"File {dotfile} does not exist")
 
     if not dotfile.is_symlink():
         return logger.warning(f"File {dotfile} exists but is not a link")
@@ -162,8 +157,9 @@ def run(command, home, profiles, recursive, queue):
                 dotfile = home / ("." + name)
             else:
                 # NOTE file.template -> file.rendered -> .file
-                rendered = candidate.parent / re.sub(".template$", ".rendered", name)
-                dotfile = home / ("." + re.sub(".template$", "", name))
+                base = name.removesuffix(".template")
+                rendered = candidate.parent / (base + ".rendered") if name.endswith(".template") else candidate
+                dotfile = home / ("." + base)
             # Run user requested command
             for func in commands[command]:
                 func(
