@@ -173,7 +173,6 @@ toml = [
 [[package]]
 name = "dot-py"
 source = {editable = "."}
-version = "1.5.1"
 
 [package.metadata]
 provides-extras = ["test"]

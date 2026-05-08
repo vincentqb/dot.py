@@ -42,11 +42,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4.2.2
       with:
-        fetch-depth: 0  # needed for git describe
+        fetch-depth: 0  # needed for hatch-vcs to derive version from git
     - uses: astral-sh/setup-uv@v6.3.1
     - name: Build
       run: uv build
-    - name: Validate tag
-      run: uv run --with dist/*.whl python tests/versions.py
     - name: Publish
       run: uv publish --trusted-publishing always
