@@ -6,8 +6,8 @@ Manage links to dotfiles.
 __all__ = ["dot"]
 __ALL__ = dir() + __all__
 
-import logging
 import os
+import sys
 from argparse import ArgumentParser, BooleanOptionalAction
 from pathlib import Path
 from string import Template
@@ -17,66 +17,71 @@ def __dir__():
     return __ALL__
 
 
-class ColoredFormatter(logging.Formatter):
-    COLORS = {
-        "blue": "\x1b[36;20m",
-        "green": "\x1b[32;20m",
-        "grey": "\x1b[38;20m",
-        "red": "\x1b[31;20m",
-        "red bold": "\x1b[31;1m",
-        "reset": "\x1b[0m",
-        "yellow": "\x1b[33;20m",
-    }
-
-    LEVELS_TO_COLOR = {
-        logging.DEBUG: "grey",
-        logging.INFO: "green",
-        logging.WARNING: "yellow",
-        logging.ERROR: "red",
-        logging.CRITICAL: "red bold",
-    }
-
-    def format_(self, msg, levelno):
-        color = self.LEVELS_TO_COLOR.get(levelno, "reset")
-        color = self.COLORS[color]
-        # Apply color and capitalize the first word of each line
-        return color + "\n".join(m[:1].upper() + m[1:] for m in msg.split("\n")) + self.COLORS["reset"]
-
-    def format(self, record):
-        record.msg = self.format_(record.msg, record.levelno)
-        return logging.Formatter().format(record)
+_RESET = "\x1b[0m"
+_STYLES = {
+    "debug": "\x1b[38;20m",  # grey
+    "info": "\x1b[32;20m",  # green
+    "warning": "\x1b[33;20m",  # yellow
+    "error": "\x1b[31;20m",  # red
+}
+_RANK = {"debug": 0, "info": 1, "warning": 2, "error": 3}
 
 
-def get_logger():
-    logger = logging.getLogger()
-
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-    return logger
+def _style(msg, level):
+    color = _STYLES.get(level, "")
+    lines = (ln[:1].upper() + ln[1:] for ln in msg.split("\n"))
+    return f"{color}{chr(10).join(lines)}{_RESET}"
 
 
-def render_link_recurse(*, candidate, recursive, queue, **_):
+class Printer:
+    """
+    Emit styled messages to stderr and count warnings.
+
+    verbose=0 -> warning threshold (quiet success)
+    verbose=1 -> info threshold
+    verbose>=2 -> debug threshold
+    """
+
+    def __init__(self, verbose=0):
+        self.threshold = max(_RANK["debug"], _RANK["warning"] - verbose)
+        self.warnings = 0
+
+    def _emit(self, level, msg):
+        if _RANK[level] < self.threshold:
+            return
+        print(_style(msg, level), file=sys.stderr)
+
+    def debug(self, msg):
+        self._emit("debug", msg)
+
+    def info(self, msg):
+        self._emit("info", msg)
+
+    def warning(self, msg):
+        self.warnings += 1
+        self._emit("warning", msg)
+
+    def error(self, msg):
+        self._emit("error", msg)
+
+
+def render_link_recurse(*, candidate, recursive, queue, printer, **_):
     """
     Render templates recursively.
     """
     # TODO only templates in root, n-deep recursing, or any-deep recursing
-    # templates = sorted(candidate.glob("*.template"))
     templates = sorted(sum([list(candidate.glob("/".join("*" * r) + ".template")) for r in range(recursive)], []))
-    # templates = sorted(candidate.glob("**/*.template"))
     for subcandidate in templates:
         if subcandidate.is_file():
             # NOTE file.template -> file.rendered -> file
             base = subcandidate.name.removesuffix(".template")
             subrendered = subcandidate.parent / (base + ".rendered")
             subdotfile = subcandidate.parent / base
-            render_single(candidate=subcandidate, rendered=subrendered, queue=queue)
-            link(rendered=subrendered, dotfile=subdotfile, queue=queue)
+            render_single(candidate=subcandidate, rendered=subrendered, queue=queue, printer=printer)
+            link(rendered=subrendered, dotfile=subdotfile, queue=queue, printer=printer)
 
 
-def render_single(*, candidate, rendered, queue, **_):
+def render_single(*, candidate, rendered, queue, printer, **_):
     """
     Render a template.
     """
@@ -90,10 +95,10 @@ def render_single(*, candidate, rendered, queue, **_):
                     rendered_file.write(content)
 
         queue.append(func)
-        logger.info(f"File {rendered} created.")
+        printer.info(f"File {rendered} created.")
 
 
-def link(*, rendered, dotfile, queue, **_):
+def link(*, rendered, dotfile, queue, printer, **_):
     """
     Link dotfiles to files in given profile directories.
     """
@@ -103,52 +108,59 @@ def link(*, rendered, dotfile, queue, **_):
             dotfile.symlink_to(rendered)
 
         queue.append(func)
-        return logger.info(f"File {dotfile} created and linked to {rendered}")
+        printer.info(f"File {dotfile} created and linked to {rendered}")
+        return
 
     if not dotfile.is_symlink():
-        return logger.warning(f"File {dotfile} exists but is not a link")
+        printer.warning(f"File {dotfile} exists but is not a link")
+        return
 
     dotfile_link = dotfile.readlink()
     if dotfile_link != rendered:
-        return logger.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
+        printer.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
+        return
 
-    return logger.info(f"File {dotfile} links to {rendered} as expected")
+    printer.info(f"File {dotfile} links to {rendered} as expected")
 
 
-def unlink(*, rendered, dotfile, queue, **_):
+def unlink(*, rendered, dotfile, queue, printer, **_):
     """
     Unlink dotfiles linked to files in given profile directories.
     """
     if not dotfile.exists():
-        return logger.warning(f"File {dotfile} does not exist")
+        printer.warning(f"File {dotfile} does not exist")
+        return
 
     if not dotfile.is_symlink():
-        return logger.warning(f"File {dotfile} exists but is not a link")
+        printer.warning(f"File {dotfile} exists but is not a link")
+        return
 
     dotfile_link = dotfile.readlink()
     if dotfile_link != rendered:
-        return logger.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
+        printer.warning(f"File {dotfile} exists and points to {dotfile_link} instead of {rendered}")
+        return
 
     def func():
         dotfile.unlink()
 
     queue.append(func)
-    return logger.info(f"File {dotfile} unlinked from {rendered}")
+    printer.info(f"File {dotfile} unlinked from {rendered}")
 
 
-def run(command, home, profiles, recursive, queue):
+def run(command, home, profiles, recursive, queue, printer):
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
-        return logger.warning(f"Folder {home} does not exist")
+        printer.warning(f"Folder {home} does not exist")
+        return
     for profile in profiles:
         profile = Path(profile).expanduser().resolve()
         if not profile.is_dir():
-            logger.warning(f"Profile {profile} does not exist")
+            printer.warning(f"Profile {profile} does not exist")
             continue
         for candidate in sorted(profile.glob("*")):
             name = candidate.name
             if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
-                logger.debug(f"File {candidate} ignored.")
+                printer.debug(f"File {candidate} ignored.")
                 continue
             # Add dot prefix and replace template when needed
             if candidate.is_dir():
@@ -167,50 +179,20 @@ def run(command, home, profiles, recursive, queue):
                     dotfile=dotfile,
                     recursive=recursive,
                     queue=queue,
+                    printer=printer,
                 )
 
 
-class AddWarningTrackerHandlerContext:
-    def __init__(self):
-        class WarningTrackerHandler(logging.Handler):
-            def __init__(self):
-                super().__init__()
-                self.warning_called = False
-
-            def emit(self, record):
-                if record.levelno == logging.WARNING:
-                    self.warning_called = True
-
-        self.handler = WarningTrackerHandler()
-
-    def __enter__(self):
-        logger.addHandler(self.handler)
-        return self.handler
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        logger.removeHandler(self.handler)
-
-
 def dot(command, home, profiles, recursive, dry_run, verbose):
-    if verbose == 0:
-        level = logging.WARNING
-    elif verbose == 1:
-        level = logging.INFO
-    else:
-        level = logging.DEBUG
-    logger.setLevel(level)
-
-    # Build queue
+    printer = Printer(verbose=verbose)
     queue = []
 
-    with AddWarningTrackerHandlerContext() as handler:
-        run(command, home, profiles, recursive=recursive, queue=queue)
+    run(command, home, profiles, recursive=recursive, queue=queue, printer=printer)
 
-        if handler.warning_called:
-            logger.error("Error: There were conflicts. Exiting without changing dotfiles.")
-            raise SystemExit(1)
+    if printer.warnings:
+        printer.error("Error: There were conflicts. Exiting without changing dotfiles.")
+        raise SystemExit(1)
 
-    # Execute queue
     if not dry_run:
         for func in queue:
             func()
@@ -238,8 +220,6 @@ def dot_from_args(*, prog="dot.py"):
     dot(**parse_args(prog))
 
 
-formatter = ColoredFormatter()
-logger = get_logger()
 commands = {"link": [render_link_recurse, render_single, link], "unlink": [unlink]}
 
 

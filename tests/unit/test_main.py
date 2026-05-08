@@ -1,6 +1,4 @@
 import sys
-from contextlib import redirect_stderr
-from io import StringIO
 
 import pytest
 from conftest import set_env
@@ -14,25 +12,22 @@ from dot import dot  # noqa
 @pytest.mark.parametrize("command", ["link", "unlink"])
 @pytest.mark.parametrize("home_folder", ["home", "not_a_home"])
 @pytest.mark.parametrize("dry_run", [False, True])
-def test_system_exit(root, command, home_folder, dry_run, caplog):
+def test_system_exit(root, command, home_folder, dry_run, capsys):
     home = root / home_folder
     profile = root / "not_a_profile"
 
     with pytest.raises(SystemExit):
         dot(command=command, home=str(home), profiles=[str(profile)], recursive=1, dry_run=dry_run, verbose=0)
 
-    assert len(caplog.records) == 2  # TODO may wish to also show profile warnings
-    assert caplog.records[0].msg.startswith("\x1b[33;20m")
-    assert caplog.records[0].msg.endswith("\x1b[0m")
-    assert caplog.records[0].levelname == "WARNING"
-    assert caplog.records[1].msg.startswith("\x1b[31;20m")
-    assert caplog.records[1].msg.endswith("\x1b[0m")
-    assert caplog.records[1].levelname == "ERROR"
+    err = capsys.readouterr().err.splitlines()
+    assert len(err) == 2  # TODO may wish to also show profile warnings
+    assert err[0].startswith("\x1b[33;20m") and err[0].endswith("\x1b[0m")  # warning (yellow)
+    assert err[1].startswith("\x1b[31;20m") and err[1].endswith("\x1b[0m")  # error (red)
     assert home.is_dir() != (home_folder != "home")
     assert not profile.is_dir()
 
 
-def test_link_unlink_profile(root):
+def test_link_unlink_profile(root, capsys):
     home = root / "home"
     profile = root / "default"
     candidate = profile / "bashrc"
@@ -46,21 +41,19 @@ def test_link_unlink_profile(root):
 
     dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=0)
     assert (home / ".bashrc").is_symlink()
+    capsys.readouterr()  # drain
 
-    with redirect_stderr(StringIO()) as captured:
-        dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=0)
-    captured = captured.getvalue().split("\n")
-    assert len(captured) == 1
+    # Re-linking an already-correct link at verbose=0 produces no stderr output
+    dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=0)
+    assert capsys.readouterr().err == ""
 
-    with redirect_stderr(StringIO()) as captured:
-        dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=1)
-    captured = captured.getvalue().split("\n")
-    assert len(captured) == 1
+    # At verbose=1, info messages surface
+    dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=1)
+    assert "links to" in capsys.readouterr().err
 
-    with redirect_stderr(StringIO()) as captured:
-        dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=2)
-    captured = captured.getvalue().split("\n")
-    assert len(captured) == 1
+    # At verbose=2, debug-level still emits info at minimum
+    dot(command="link", home=str(home), profiles=[str(profile)], recursive=1, dry_run=False, verbose=2)
+    assert "links to" in capsys.readouterr().err
 
     dot(command="unlink", home=str(home), profiles=[str(profile)], recursive=1, dry_run=True, verbose=0)
     assert (home / ".bashrc").is_symlink()
