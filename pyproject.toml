@@ -17,7 +17,8 @@ version = "1.5.1"
 [project.optional-dependencies]
 test = [
   "coverage[toml]",
-  "pytest>=8.3.3"
+  "pytest>=8.3.3",
+  "pytest-cov"
 ]
 
 [project.scripts]
@@ -35,6 +36,9 @@ source = ["."]
 
 [tool.hatch.build]
 only-include = ["dot.py", "_dot.py"]
+
+[tool.pytest.ini_options]
+addopts = "--cov"
 
 [tool.pytype]
 inputs = ["dot.py"]
