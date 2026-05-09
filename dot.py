@@ -39,13 +39,20 @@ class Printer:
     """
     Emit styled messages to stderr and count warnings.
 
-    verbose=0 -> warning threshold (quiet success)
-    verbose=1 -> info threshold
-    verbose>=2 -> debug threshold
+    Thresholds:
+        verbose=True        -> debug (show everything)
+        dry_run=True only   -> info  (show the plan)
+        neither             -> warning (quiet success)
     """
 
-    def __init__(self, verbose=0):
-        self.threshold = max(_RANK["debug"], _RANK["warning"] - verbose)
+    def __init__(self, verbose=False, dry_run=False):
+        if verbose:
+            level = "debug"
+        elif dry_run:
+            level = "info"
+        else:
+            level = "warning"
+        self.threshold = _RANK[level]
         self.warnings = 0
 
     def _emit(self, level, msg):
@@ -193,7 +200,7 @@ def _plan_link_all(candidate, rendered, dotfile, recursive, printer):
 
 
 def dot(command, home, profiles, recursive, dry_run, verbose):
-    printer = Printer(verbose=verbose)
+    printer = Printer(verbose=verbose, dry_run=dry_run)
     queue = []
 
     home = Path(home).expanduser().resolve()
@@ -246,7 +253,7 @@ def dot_from_args(*, prog="dot.py"):
             default=1,
             help="increase depth of recursion when rendering templates",
         )
-        sp.add_argument("-v", "--verbose", action="count", default=0)
+        sp.add_argument("-v", "--verbose", action="store_true")
         sp.add_argument("-d", "--dry-run", default=False, action=BooleanOptionalAction)
     dot(**vars(parser.parse_args()))
 
