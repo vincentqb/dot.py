@@ -106,13 +106,13 @@ def plan_render(candidate, rendered, printer):
     """Render a template."""
     if candidate == rendered:
         return None
-    printer.info(f"File {rendered} created.")
+    printer.info(f"File {rendered} will be created.")
     return Render(candidate, rendered)
 
 
 def plan_link(rendered, dotfile, printer):
     if not dotfile.exists():
-        printer.info(f"File {dotfile} created and linked to {rendered}")
+        printer.info(f"File {dotfile} will be created and linked to {rendered}")
         return Symlink(rendered, dotfile)
     if not dotfile.is_symlink():
         printer.warning(f"File {dotfile} exists but is not a link")
@@ -136,7 +136,7 @@ def plan_unlink(rendered, dotfile, printer):
     if actual != rendered:
         printer.warning(f"File {dotfile} exists and points to {actual} instead of {rendered}")
         return None
-    printer.info(f"File {dotfile} unlinked from {rendered}")
+    printer.info(f"File {dotfile} will be unlinked from {rendered}")
     return Unlink(rendered, dotfile)
 
 
