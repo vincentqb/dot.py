@@ -188,9 +188,20 @@ def _plan_link_all(candidate, rendered, dotfile, recursive, printer):
     return out
 
 
+def _plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
+    # Nested rendered files inside directories are intentionally left in place:
+    # 'unlink' keeps the profile partially rendered so a subsequent 'link'
+    # does not have to re-render.
+    out = []
+    if a := _plan_unlink(rendered, dotfile, printer):
+        out.append(a)
+    return out
+
+
 def dot(command, home, profiles, recursive, dry_run):
     printer = Printer(dry_run=dry_run)
     queue = []
+    planner = _plan_link_all if command == "link" else _plan_unlink_all
 
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
@@ -202,14 +213,7 @@ def dot(command, home, profiles, recursive, dry_run):
                 printer.warning(f"Profile {profile} does not exist")
                 continue
             for candidate, rendered, dotfile in _walk(profile, home, printer):
-                if command == "link":
-                    # Nested templates inside directories are rendered and
-                    # linked in-place. Intentionally not unlinked: 'unlink'
-                    # leaves the profile partially rendered so a subsequent
-                    # 'link' does not have to re-render.
-                    queue.extend(_plan_link_all(candidate, rendered, dotfile, recursive, printer))
-                elif a := _plan_unlink(rendered, dotfile, printer):
-                    queue.append(a)
+                queue.extend(planner(candidate, rendered, dotfile, recursive, printer))
 
     if printer.warnings:
         printer.error("Error: There were conflicts. Exiting without changing dotfiles.")
