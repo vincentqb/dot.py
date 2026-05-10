@@ -1,6 +1,6 @@
 # dot.py
 
-**dot.py** is a minimalist one-file python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.9+**.
+**dot.py** is a minimalist one-file python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.10+**.
 
 ## Quick Start
 
@@ -13,7 +13,7 @@
    or use [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
    ```sh
-   uvx --python 3.9 --from dot-py dot.py -h
+   uvx --python 3.10 --from dot-py dot.py -h
    ```
 
    or download the script directly and run with `~/dot.py` below
