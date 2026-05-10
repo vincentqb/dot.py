@@ -112,7 +112,6 @@ def _plan_render(candidate, rendered, printer):
 
 
 def _plan_link(rendered, dotfile, printer):
-    """Link dotfiles to files in given profile directories."""
     if not dotfile.exists():
         printer.info(f"File {dotfile} created and linked to {rendered}")
         return Symlink(rendered, dotfile)
@@ -128,7 +127,6 @@ def _plan_link(rendered, dotfile, printer):
 
 
 def _plan_unlink(rendered, dotfile, printer):
-    """Unlink dotfiles linked to files in given profile directories."""
     if not dotfile.exists():
         printer.warning(f"File {dotfile} does not exist")
         return None
@@ -173,7 +171,7 @@ def _nested_templates(folder, recursive):
 
 
 def _plan_link_all(candidate, rendered, dotfile, recursive, printer):
-    """Queue render + symlink actions for one top-level entry, plus any nested templates."""
+    """Link dotfiles to files in given profile directories."""
     out = []
     if a := _plan_render(candidate, rendered, printer):
         out.append(a)
@@ -189,6 +187,7 @@ def _plan_link_all(candidate, rendered, dotfile, recursive, printer):
 
 
 def _plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
+    """Unlink dotfiles linked to files in given profile directories."""
     # Nested rendered files inside directories are intentionally left in place:
     # 'unlink' keeps the profile partially rendered so a subsequent 'link'
     # does not have to re-render.
@@ -227,8 +226,8 @@ def dot(command, home, profiles, recursive, dry_run):
 # --- CLI --------------------------------------------------------------------
 
 _COMMANDS = {
-    "link": _plan_link,
-    "unlink": _plan_unlink,
+    "link": _plan_link_all,
+    "unlink": _plan_unlink_all,
 }
 
 
