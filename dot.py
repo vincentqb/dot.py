@@ -19,18 +19,18 @@ def __dir__():
 
 # --- output -----------------------------------------------------------------
 
-_RESET = "\x1b[0m"
-_STYLES = {
+RESET = "\x1b[0m"
+STYLES = {
     "info": "\x1b[32;20m",  # green
     "warning": "\x1b[33;20m",  # yellow
     "error": "\x1b[31;20m",  # red
 }
-_RANK = {"info": 0, "warning": 1, "error": 2}
+RANK = {"info": 0, "warning": 1, "error": 2}
 
 
-def _style(msg, level):
+def style(msg, level):
     body = "\n".join(ln[:1].upper() + ln[1:] for ln in msg.split("\n"))
-    return f"{_STYLES[level]}{body}{_RESET}"
+    return f"{STYLES[level]}{body}{RESET}"
 
 
 class Printer:
@@ -43,13 +43,13 @@ class Printer:
     """
 
     def __init__(self, dry_run=False):
-        self.threshold = _RANK["info" if dry_run else "warning"]
+        self.threshold = RANK["info" if dry_run else "warning"]
         self.warnings = 0
 
     def _emit(self, level, msg):
-        if _RANK[level] < self.threshold:
+        if RANK[level] < self.threshold:
             return
-        print(_style(msg, level), file=sys.stderr)
+        print(style(msg, level), file=sys.stderr)
 
     def info(self, msg):
         self._emit("info", msg)
@@ -102,7 +102,7 @@ class Unlink:
 # --- planners ---------------------------------------------------------------
 
 
-def _plan_render(candidate, rendered, printer):
+def plan_render(candidate, rendered, printer):
     """Render a template."""
     if candidate == rendered:
         return None
@@ -110,7 +110,7 @@ def _plan_render(candidate, rendered, printer):
     return Render(candidate, rendered)
 
 
-def _plan_link(rendered, dotfile, printer):
+def plan_link(rendered, dotfile, printer):
     if not dotfile.exists():
         printer.info(f"File {dotfile} created and linked to {rendered}")
         return Symlink(rendered, dotfile)
@@ -125,7 +125,7 @@ def _plan_link(rendered, dotfile, printer):
     return None
 
 
-def _plan_unlink(rendered, dotfile, printer):
+def plan_unlink(rendered, dotfile, printer):
     if not dotfile.exists():
         printer.warning(f"File {dotfile} does not exist")
         return None
@@ -143,7 +143,7 @@ def _plan_unlink(rendered, dotfile, printer):
 # --- walk + core ------------------------------------------------------------
 
 
-def _walk(profile, home, printer):
+def walk(profile, home, printer):
     """Yield (candidate, rendered, dotfile) for each top-level entry in the profile."""
     for candidate in sorted(profile.glob("*")):
         name = candidate.name
@@ -159,7 +159,7 @@ def _walk(profile, home, printer):
             yield candidate, rendered, dotfile
 
 
-def _nested_templates(folder, recursive):
+def nested_templates(folder, recursive):
     """Yield (template, rendered, link) for each template nested inside a directory."""
     for depth in range(recursive):
         pattern = "/".join(["*"] * depth) + ".template" if depth else ".template"
@@ -169,29 +169,29 @@ def _nested_templates(folder, recursive):
                 yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
 
 
-def _plan_link_all(candidate, rendered, dotfile, recursive, printer):
+def plan_link_all(candidate, rendered, dotfile, recursive, printer):
     """Link dotfiles to files in given profile directories."""
     out = []
-    if a := _plan_render(candidate, rendered, printer):
+    if a := plan_render(candidate, rendered, printer):
         out.append(a)
-    if a := _plan_link(rendered, dotfile, printer):
+    if a := plan_link(rendered, dotfile, printer):
         out.append(a)
     if candidate.is_dir():
-        for tsrc, tdst, tlink in _nested_templates(candidate, recursive):
-            if a := _plan_render(tsrc, tdst, printer):
+        for tsrc, tdst, tlink in nested_templates(candidate, recursive):
+            if a := plan_render(tsrc, tdst, printer):
                 out.append(a)
-            if a := _plan_link(tdst, tlink, printer):
+            if a := plan_link(tdst, tlink, printer):
                 out.append(a)
     return out
 
 
-def _plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
+def plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
     """Unlink dotfiles linked to files in given profile directories."""
     # Nested rendered files inside directories are intentionally left in place:
     # 'unlink' keeps the profile partially rendered so a subsequent 'link'
     # does not have to re-render.
     out = []
-    if a := _plan_unlink(rendered, dotfile, printer):
+    if a := plan_unlink(rendered, dotfile, printer):
         out.append(a)
     return out
 
@@ -199,7 +199,7 @@ def _plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
 def dot(command, home, profiles, recursive, dry_run):
     printer = Printer(dry_run=dry_run)
     queue = []
-    planner = _plan_link_all if command == "link" else _plan_unlink_all
+    planner = plan_link_all if command == "link" else plan_unlink_all
 
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
@@ -210,7 +210,7 @@ def dot(command, home, profiles, recursive, dry_run):
             if not profile.is_dir():
                 printer.warning(f"Profile {profile} does not exist")
                 continue
-            for candidate, rendered, dotfile in _walk(profile, home, printer):
+            for candidate, rendered, dotfile in walk(profile, home, printer):
                 queue.extend(planner(candidate, rendered, dotfile, recursive, printer))
 
     if printer.warnings:
@@ -224,16 +224,16 @@ def dot(command, home, profiles, recursive, dry_run):
 
 # --- CLI --------------------------------------------------------------------
 
-_COMMANDS = {
-    "link": _plan_link_all,
-    "unlink": _plan_unlink_all,
+COMMANDS = {
+    "link": plan_link_all,
+    "unlink": plan_unlink_all,
 }
 
 
 def dot_from_args(*, prog="dot.py"):
     parser = ArgumentParser(prog=prog, description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for cmd, fn in _COMMANDS.items():
+    for cmd, fn in COMMANDS.items():
         sp = subparsers.add_parser(cmd, description=fn.__doc__)
         sp.add_argument("profiles", nargs="+")
         sp.add_argument("--home", nargs="?", default="~")
