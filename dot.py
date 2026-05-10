@@ -21,12 +21,11 @@ def __dir__():
 
 _RESET = "\x1b[0m"
 _STYLES = {
-    "debug": "\x1b[38;20m",  # grey
     "info": "\x1b[32;20m",  # green
     "warning": "\x1b[33;20m",  # yellow
     "error": "\x1b[31;20m",  # red
 }
-_RANK = {"debug": 0, "info": 1, "warning": 2, "error": 3}
+_RANK = {"info": 0, "warning": 1, "error": 2}
 
 
 def _style(msg, level):
@@ -40,28 +39,18 @@ class Printer:
     Emit styled messages to stderr and count warnings.
 
     Thresholds:
-        verbose=True        -> debug (show everything)
-        dry_run=True only   -> info  (show the plan)
-        neither             -> warning (quiet success)
+        dry_run=True  -> info (show the plan)
+        otherwise     -> warning (quiet success)
     """
 
-    def __init__(self, verbose=False, dry_run=False):
-        if verbose:
-            level = "debug"
-        elif dry_run:
-            level = "info"
-        else:
-            level = "warning"
-        self.threshold = _RANK[level]
+    def __init__(self, dry_run=False):
+        self.threshold = _RANK["info" if dry_run else "warning"]
         self.warnings = 0
 
     def _emit(self, level, msg):
         if _RANK[level] < self.threshold:
             return
         print(_style(msg, level), file=sys.stderr)
-
-    def debug(self, msg):
-        self._emit("debug", msg)
 
     def info(self, msg):
         self._emit("info", msg)
@@ -162,7 +151,7 @@ def _walk(profile, home, printer):
     for candidate in sorted(profile.glob("*")):
         name = candidate.name
         if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
-            printer.debug(f"File {candidate} ignored.")
+            printer.info(f"File {candidate} ignored.")
             continue
         if candidate.is_dir():
             yield candidate, candidate, home / f".{name}"
@@ -199,8 +188,8 @@ def _plan_link_all(candidate, rendered, dotfile, recursive, printer):
     return out
 
 
-def dot(command, home, profiles, recursive, dry_run, verbose):
-    printer = Printer(verbose=verbose, dry_run=dry_run)
+def dot(command, home, profiles, recursive, dry_run):
+    printer = Printer(dry_run=dry_run)
     queue = []
 
     home = Path(home).expanduser().resolve()
@@ -253,7 +242,6 @@ def dot_from_args(*, prog="dot.py"):
             default=1,
             help="increase depth of recursion when rendering templates",
         )
-        sp.add_argument("-v", "--verbose", action="store_true")
         sp.add_argument("-d", "--dry-run", default=False, action=BooleanOptionalAction)
     dot(**vars(parser.parse_args()))
 
