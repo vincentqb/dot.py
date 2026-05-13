@@ -21,7 +21,7 @@ def __dir__():
 
 RESET = "\x1b[0m"
 STYLES = {
-    "info": "\x1b[90m",   # dark gray
+    "info": "\x1b[90m",  # dark gray
     "warning": "\x1b[33m",  # yellow
     "error": "\x1b[31m",  # red
 }
