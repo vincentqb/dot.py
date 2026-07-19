@@ -10,6 +10,7 @@ import sys
 from argparse import ArgumentParser, BooleanOptionalAction
 from dataclasses import dataclass
 from pathlib import Path
+from shutil import copymode
 from string import Template
 
 
@@ -25,7 +26,6 @@ STYLES = {
     "warning": "\x1b[33m",  # yellow
     "error": "\x1b[31m",  # red
 }
-RANK = {"info": 0, "warning": 1, "error": 2}
 
 
 def style(msg, level):
@@ -36,29 +36,24 @@ class Printer:
     """
     Emit styled messages to stderr and count warnings.
 
-    Thresholds:
-        dry_run=True  -> info (show the plan)
-        otherwise     -> warning (quiet success)
+    Info messages show the plan and are only emitted during a dry run;
+    warnings and errors are always emitted.
     """
 
     def __init__(self, dry_run=False):
-        self.threshold = RANK["info" if dry_run else "warning"]
+        self.dry_run = dry_run
         self.warnings = 0
 
-    def _emit(self, level, msg):
-        if RANK[level] < self.threshold:
-            return
-        print(style(msg, level), file=sys.stderr)
-
     def info(self, msg):
-        self._emit("info", msg)
+        if self.dry_run:
+            print(style(msg, "info"), file=sys.stderr)
 
     def warning(self, msg):
         self.warnings += 1
-        self._emit("warning", msg)
+        print(style(msg, "warning"), file=sys.stderr)
 
     def error(self, msg):
-        self._emit("error", msg)
+        print(style(msg, "error"), file=sys.stderr)
 
 
 # --- actions ----------------------------------------------------------------
@@ -66,13 +61,17 @@ class Printer:
 
 @dataclass(frozen=True, slots=True)
 class Render:
-    """Render a template: read 'source', substitute env vars, write to 'target'."""
+    """Render a template: read 'source', substitute env vars, write to 'target' with 'source' permissions."""
 
     source: Path
     target: Path
 
     def apply(self) -> None:
         content = Template(self.source.read_text(encoding="utf-8")).safe_substitute(os.environ)
+        # Copy permissions before writing so a rendered secret is never
+        # world-readable, even briefly.
+        self.target.touch()
+        copymode(self.source, self.target)
         self.target.write_text(content, encoding="utf-8")
 
 
@@ -105,12 +104,17 @@ def plan_render(candidate, rendered, printer):
     """Render a template."""
     if candidate == rendered:
         return None
+    if rendered.is_symlink():
+        printer.warning(f"File {rendered} exists but is a link")
+        return None
     printer.info(f"File {rendered} will be created.")
     return Render(candidate, rendered)
 
 
 def plan_link(rendered, dotfile, printer):
-    if not dotfile.exists():
+    # Check is_symlink too: exists() follows links, so a dangling symlink
+    # otherwise looks absent and symlink_to would fail on apply.
+    if not dotfile.exists() and not dotfile.is_symlink():
         printer.info(f"File {dotfile} will be created and linked to {rendered}")
         return Symlink(rendered, dotfile)
     if not dotfile.is_symlink():
@@ -125,7 +129,8 @@ def plan_link(rendered, dotfile, printer):
 
 
 def plan_unlink(rendered, dotfile, printer):
-    if not dotfile.exists():
+    # Check is_symlink too so a dangling symlink can still be unlinked.
+    if not dotfile.exists() and not dotfile.is_symlink():
         printer.warning(f"File {dotfile} does not exist")
         return None
     if not dotfile.is_symlink():
@@ -160,10 +165,12 @@ def walk(profile, home, printer):
 
 def nested_templates(folder, recursive):
     """Yield (template, rendered, link) for each template nested inside a directory."""
-    for depth in range(recursive):
-        pattern = "/".join(["*"] * depth) + ".template" if depth else ".template"
+    for depth in range(1, recursive):
+        pattern = "/".join(["*"] * depth) + ".template"
         for tmpl in sorted(folder.glob(pattern)):
-            if tmpl.is_file():
+            # Skip hidden files: a file named exactly ".template" matches
+            # "*.template" and would render to an empty name.
+            if tmpl.is_file() and not tmpl.name.startswith("."):
                 base = tmpl.name.removesuffix(".template")
                 yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
 
@@ -204,8 +211,6 @@ def dot(command, home, profiles, recursive, dry_run):
     if not home.is_dir():
         printer.warning(f"Folder {home} does not exist")
     else:
-        if len(profiles) != len(set(profiles)):
-            printer.error("Error: There are duplicate profiles.")
         for p in profiles:
             profile = Path(p).expanduser().resolve()
             if not profile.is_dir():
@@ -213,6 +218,15 @@ def dot(command, home, profiles, recursive, dry_run):
                 continue
             for candidate, rendered, dotfile in walk(profile, home, printer):
                 queue.extend(planner(candidate, rendered, dotfile, recursive, printer))
+
+    # Catch duplicate profiles and name collisions across profiles: planners
+    # check the filesystem, so two actions on one target pass planning but
+    # break on apply.
+    seen = set()
+    for action in queue:
+        if action.target in seen:
+            printer.warning(f"File {action.target} is planned more than once")
+        seen.add(action.target)
 
     if printer.warnings:
         printer.error("Error: There were conflicts. Exiting without changing dotfiles.")
@@ -237,7 +251,7 @@ def dot_from_args(*, prog="dot.py"):
     for cmd, fn in COMMANDS.items():
         sp = subparsers.add_parser(cmd, description=fn.__doc__)
         sp.add_argument("profiles", nargs="+")
-        sp.add_argument("--home", nargs="?", default="~")
+        sp.add_argument("--home", default="~")
         sp.add_argument(
             "-r",
             "--recursive",

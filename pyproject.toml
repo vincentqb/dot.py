@@ -29,10 +29,10 @@ test = [
 
 [tool.coverage.report]
 fail_under = 80
-show_missing = false
+show_missing = true
 
 [tool.coverage.run]
-source = ["."]
+source = ["dot"]
 
 [tool.hatch.build]
 only-include = ["dot.py", "_dot.py"]
@@ -41,7 +41,7 @@ only-include = ["dot.py", "_dot.py"]
 source = "vcs"
 
 [tool.pytest.ini_options]
-addopts = "--cov"
+addopts = "--cov=dot"
 
 [tool.pytype]
 inputs = ["dot.py"]
