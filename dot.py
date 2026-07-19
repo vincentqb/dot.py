@@ -29,8 +29,7 @@ RANK = {"info": 0, "warning": 1, "error": 2}
 
 
 def style(msg, level):
-    body = "\n".join(ln[:1].upper() + ln[1:] for ln in msg.split("\n"))
-    return f"{STYLES[level]}{body}{RESET}"
+    return f"{STYLES[level]}{msg}{RESET}"
 
 
 class Printer:
