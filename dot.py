@@ -90,7 +90,7 @@ class Symlink:
 
 @dataclass(frozen=True, slots=True)
 class Unlink:
-    """Remove the symlink at 'target'. 'source' is retained for context."""
+    """Remove the symlink at 'target'."""
 
     source: Path
     target: Path
@@ -199,12 +199,14 @@ def plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
 def dot(command, home, profiles, recursive, dry_run):
     printer = Printer(dry_run=dry_run)
     queue = []
-    planner = plan_link_all if command == "link" else plan_unlink_all
+    planner = COMMANDS[command]
 
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
         printer.warning(f"Folder {home} does not exist")
     else:
+        if len(profiles) != len(set(profiles)):
+            printer.error("Error: There are duplicate profiles.")
         for p in profiles:
             profile = Path(p).expanduser().resolve()
             if not profile.is_dir():
