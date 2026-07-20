@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#     "rich",
+#     "typer",
+# ]
+# ///
 """
 Manage links to dotfiles.
 """
@@ -6,12 +13,14 @@ Manage links to dotfiles.
 __all__ = ["dot", "dot_from_args"]
 
 import os
-import sys
-from argparse import ArgumentParser, BooleanOptionalAction
 from dataclasses import dataclass
 from pathlib import Path
 from shutil import copymode
 from string import Template
+from typing import Annotated
+
+import typer
+from rich.console import Console
 
 
 def __dir__():
@@ -20,16 +29,7 @@ def __dir__():
 
 # --- output -----------------------------------------------------------------
 
-RESET = "\x1b[0m"
-STYLES = {
-    "info": "\x1b[90m",  # dark gray
-    "warning": "\x1b[33m",  # yellow
-    "error": "\x1b[31m",  # red
-}
-
-
-def style(msg, level):
-    return f"{STYLES[level]}{msg}{RESET}"
+console = Console(stderr=True, highlight=False, markup=False, soft_wrap=True)
 
 
 class Printer:
@@ -46,14 +46,14 @@ class Printer:
 
     def info(self, msg):
         if self.dry_run:
-            print(style(msg, "info"), file=sys.stderr)
+            console.print(msg, style="bright_black")
 
     def warning(self, msg):
         self.warnings += 1
-        print(style(msg, "warning"), file=sys.stderr)
+        console.print(msg, style="yellow")
 
     def error(self, msg):
-        print(style(msg, "error"), file=sys.stderr)
+        console.print(msg, style="red")
 
 
 # --- actions ----------------------------------------------------------------
@@ -68,8 +68,6 @@ class Render:
 
     def apply(self) -> None:
         content = Template(self.source.read_text(encoding="utf-8")).safe_substitute(os.environ)
-        # Copy permissions before writing so a rendered secret is never
-        # world-readable, even briefly.
         self.target.touch()
         copymode(self.source, self.target)
         self.target.write_text(content, encoding="utf-8")
@@ -112,8 +110,6 @@ def plan_render(candidate, rendered, printer):
 
 
 def plan_link(rendered, dotfile, printer):
-    # Check is_symlink too: exists() follows links, so a dangling symlink
-    # otherwise looks absent and symlink_to would fail on apply.
     if not dotfile.exists() and not dotfile.is_symlink():
         printer.info(f"File {dotfile} will be created and linked to {rendered}")
         return Symlink(rendered, dotfile)
@@ -129,7 +125,6 @@ def plan_link(rendered, dotfile, printer):
 
 
 def plan_unlink(rendered, dotfile, printer):
-    # Check is_symlink too so a dangling symlink can still be unlinked.
     if not dotfile.exists() and not dotfile.is_symlink():
         printer.warning(f"File {dotfile} does not exist")
         return None
@@ -168,8 +163,6 @@ def nested_templates(folder, recursive):
     for depth in range(1, recursive):
         pattern = "/".join(["*"] * depth) + ".template"
         for tmpl in sorted(folder.glob(pattern)):
-            # Skip hidden files: a file named exactly ".template" matches
-            # "*.template" and would render to an empty name.
             if tmpl.is_file() and not tmpl.name.startswith("."):
                 base = tmpl.name.removesuffix(".template")
                 yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
@@ -219,9 +212,6 @@ def dot(command, home, profiles, recursive, dry_run):
             for candidate, rendered, dotfile in walk(profile, home, printer):
                 queue.extend(planner(candidate, rendered, dotfile, recursive, printer))
 
-    # Catch duplicate profiles and name collisions across profiles: planners
-    # check the filesystem, so two actions on one target pass planning but
-    # break on apply.
     seen = set()
     for action in queue:
         if action.target in seen:
@@ -244,23 +234,28 @@ COMMANDS = {
     "unlink": plan_unlink_all,
 }
 
+app = typer.Typer(help=__doc__, context_settings={"help_option_names": ["-h", "--help"]})
+
+Profiles = Annotated[list[Path], typer.Argument(help="profile directories to process")]
+Home = Annotated[Path, typer.Option(help="directory receiving the dotfiles")]
+Recursive = Annotated[
+    int, typer.Option("--recursive", "-r", count=True, help="increase depth of recursion when rendering templates")
+]
+DryRun = Annotated[bool, typer.Option("--dry-run/--no-dry-run", "-d", help="show the plan without applying it")]
+
+
+@app.command(help=plan_link_all.__doc__)
+def link(profiles: Profiles, home: Home = Path("~"), recursive: Recursive = 0, dry_run: DryRun = False):
+    dot("link", home, profiles, recursive + 1, dry_run)
+
+
+@app.command(help=plan_unlink_all.__doc__)
+def unlink(profiles: Profiles, home: Home = Path("~"), recursive: Recursive = 0, dry_run: DryRun = False):
+    dot("unlink", home, profiles, recursive + 1, dry_run)
+
 
 def dot_from_args(*, prog="dot.py"):
-    parser = ArgumentParser(prog=prog, description=__doc__)
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    for cmd, fn in COMMANDS.items():
-        sp = subparsers.add_parser(cmd, description=fn.__doc__)
-        sp.add_argument("profiles", nargs="+")
-        sp.add_argument("--home", default="~")
-        sp.add_argument(
-            "-r",
-            "--recursive",
-            action="count",
-            default=1,
-            help="increase depth of recursion when rendering templates",
-        )
-        sp.add_argument("-d", "--dry-run", default=False, action=BooleanOptionalAction)
-    dot(**vars(parser.parse_args()))
+    app(prog_name=prog)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # dot.py
 
-**dot.py** is a minimalist one-file python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.10+**.
+**dot.py** is a minimalist one-file python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. Requires **python 3.10+**.
 
 ## Quick Start
 
@@ -16,10 +16,10 @@
    uvx --python 3.10 --from dot-py dot.py -h
    ```
 
-   or download the script directly and run with `~/dot.py` below
+   or download the script directly and run with `uv run ~/dot.py` below
 
    ```sh
-   wget https://raw.githubusercontent.com/vincentqb/dot.py/main/dot.py -O ~/dot.py && chmod u+x ~/dot.py
+   wget https://raw.githubusercontent.com/vincentqb/dot.py/main/dot.py -O ~/dot.py
    ```
 
 1. Create your initial profile. For example, you can create a directory called `default`.

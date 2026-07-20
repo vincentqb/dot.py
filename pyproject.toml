@@ -8,6 +8,10 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3"
 ]
+dependencies = [
+  "rich",
+  "typer"
+]
 description = "dot.py is a minimalist python script for managing dotfiles via symbolic links."
 dynamic = ["version"]
 name = "dot.py"
