@@ -3,7 +3,7 @@ build-backend = "hatchling.build"
 requires = ["hatchling", "hatch-vcs"]
 
 [project]
-authors = [{name = "Vincent QB", email = "vincentqb@gmail.com"}]
+authors = [{ name = "Vincent QB", email = "vincentqb@gmail.com" }]
 classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3"
