@@ -25,6 +25,8 @@ repos:
   rev: v2.16.0
   hooks:
   - id: pretty-format-toml
+    additional_dependencies:
+    - toml-sort==0.25.0  # unpinned by the hook; 0.25 changed inline-table spacing, keep local and CI in step
     args: [--autofix]
   - id: pretty-format-yaml
     args: [--autofix]
