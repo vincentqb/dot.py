@@ -17,7 +17,7 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
     home = root / home_folder
     profile = root / "not_a_profile"
 
-    call = cli.split(" ") + [command, str(home), str(profile)]
+    call = cli.split(" ") + [command, "--home", str(home), str(profile)]
 
     if dry_run is not None:
         if dry_run:
@@ -25,9 +25,14 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
         else:
             call += ["--no-dry-run"]
 
-    error_code = subprocess.call(call)
+    result = subprocess.run(call, capture_output=True, text=True)
 
-    assert error_code == 1
+    assert result.returncode == 1
+    # A missing home is reported and the profile is never looked at;
+    # with a home present only the missing profile is reported.
+    warned, silent = ("Folder", "Profile") if home_folder == "not_a_home" else ("Profile", "Folder")
+    assert warned in result.stderr
+    assert silent not in result.stderr
     assert home.is_dir() != (home_folder != "home")
     assert not profile.is_dir()
 
