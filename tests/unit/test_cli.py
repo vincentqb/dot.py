@@ -50,3 +50,18 @@ def test_error_code_missing_cli(cli, root, command):
     call = cli.split(" ") + command
     error_code = subprocess.call(call)
     assert error_code == 2
+
+
+@pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
+@pytest.mark.parametrize("args,prefix", [([], "."), (["--prefix", "_"], "_"), (["-p", "_"], "_")])
+def test_prefix_cli(cli, root, args, prefix):
+    home = root / "home"
+    profile = root / "default"
+    profile.mkdir()
+    (profile / "bashrc").write_text("set -o vi")
+
+    call = cli.split(" ") + ["link", "--home", str(home), str(profile)] + args
+    error_code = subprocess.call(call)
+
+    assert error_code == 0
+    assert (home / f"{prefix}bashrc").is_symlink()

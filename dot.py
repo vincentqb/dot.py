@@ -142,7 +142,7 @@ def plan_unlink(rendered, dotfile, printer):
 # --- walk + core ------------------------------------------------------------
 
 
-def walk(profile, home, printer):
+def walk(profile, home, prefix, printer):
     """Yield (candidate, rendered, dotfile) for each top-level entry in the profile."""
     for candidate in sorted(profile.glob("*")):
         name = candidate.name
@@ -150,11 +150,11 @@ def walk(profile, home, printer):
             printer.info(f"File {candidate} ignored.")
             continue
         if candidate.is_dir():
-            yield candidate, candidate, home / f".{name}"
+            yield candidate, candidate, home / f"{prefix}{name}"
         else:
             base = name.removesuffix(".template")
             rendered = candidate.parent / (base + ".rendered") if name.endswith(".template") else candidate
-            dotfile = home / ("." + base)
+            dotfile = home / f"{prefix}{base}"
             yield candidate, rendered, dotfile
 
 
@@ -195,7 +195,7 @@ def plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
     return out
 
 
-def dot(command, home, profiles, recursive, dry_run):
+def dot(command, home, profiles, prefix, recursive, dry_run):
     printer = Printer(dry_run=dry_run)
     queue = []
     planner = COMMANDS[command]
@@ -209,7 +209,7 @@ def dot(command, home, profiles, recursive, dry_run):
             if not profile.is_dir():
                 printer.warning(f"Profile {profile} does not exist")
                 continue
-            for candidate, rendered, dotfile in walk(profile, home, printer):
+            for candidate, rendered, dotfile in walk(profile, home, prefix, printer):
                 queue.extend(planner(candidate, rendered, dotfile, recursive, printer))
 
     seen = set()
@@ -238,6 +238,7 @@ app = typer.Typer(help=__doc__, context_settings={"help_option_names": ["-h", "-
 
 Profiles = Annotated[list[Path], typer.Argument(help="profile directories to process")]
 Home = Annotated[Path, typer.Option(help="directory receiving the dotfiles")]
+Prefix = Annotated[str, typer.Option("--prefix", "-p", help="string prepended to each linked file name")]
 Recursive = Annotated[
     int, typer.Option("--recursive", "-r", count=True, help="increase depth of recursion when rendering templates")
 ]
@@ -245,13 +246,17 @@ DryRun = Annotated[bool, typer.Option("--dry-run/--no-dry-run", "-d", help="show
 
 
 @app.command(help=plan_link_all.__doc__)
-def link(profiles: Profiles, home: Home = Path("~"), recursive: Recursive = 0, dry_run: DryRun = False):
-    dot("link", home, profiles, recursive + 1, dry_run)
+def link(
+    profiles: Profiles, home: Home = Path("~"), prefix: Prefix = ".", recursive: Recursive = 0, dry_run: DryRun = False
+):
+    dot("link", home, profiles, prefix, recursive + 1, dry_run)
 
 
 @app.command(help=plan_unlink_all.__doc__)
-def unlink(profiles: Profiles, home: Home = Path("~"), recursive: Recursive = 0, dry_run: DryRun = False):
-    dot("unlink", home, profiles, recursive + 1, dry_run)
+def unlink(
+    profiles: Profiles, home: Home = Path("~"), prefix: Prefix = ".", recursive: Recursive = 0, dry_run: DryRun = False
+):
+    dot("unlink", home, profiles, prefix, recursive + 1, dry_run)
 
 
 def dot_from_args(*, prog="dot.py"):

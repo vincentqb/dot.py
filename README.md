@@ -34,7 +34,7 @@
    mv ~/.bashrc default/bashrc
    ```
 
-1. Link the profile. When you link, dot.py prepends a dot, in front of the original file name, to the linked file. Below, `default/bashrc` will be linked to `~/.bashrc`.
+1. Link the profile. When you link, dot.py prepends a dot, in front of the original file name, to the linked file. Below, `default/bashrc` will be linked to `~/.bashrc`. Use `--prefix` to prepend something else, or `--prefix ""` to prepend nothing, for example to link a profile into `--home ~/.config`.
 
    ```sh
    dot.py link default
