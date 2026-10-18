@@ -68,8 +68,6 @@ class Render:
 
     def apply(self) -> None:
         content = Template(self.source.read_text(encoding="utf-8")).safe_substitute(os.environ)
-        # Copy permissions before writing so a rendered secret is never
-        # world-readable, even briefly.
         self.target.touch()
         copymode(self.source, self.target)
         self.target.write_text(content, encoding="utf-8")
@@ -112,8 +110,6 @@ def plan_render(candidate, rendered, printer):
 
 
 def plan_link(rendered, dotfile, printer):
-    # Check is_symlink too: exists() follows links, so a dangling symlink
-    # otherwise looks absent and symlink_to would fail on apply.
     if not dotfile.exists() and not dotfile.is_symlink():
         printer.info(f"File {dotfile} will be created and linked to {rendered}")
         return Symlink(rendered, dotfile)
@@ -129,7 +125,6 @@ def plan_link(rendered, dotfile, printer):
 
 
 def plan_unlink(rendered, dotfile, printer):
-    # Check is_symlink too so a dangling symlink can still be unlinked.
     if not dotfile.exists() and not dotfile.is_symlink():
         printer.warning(f"File {dotfile} does not exist")
         return None
@@ -193,9 +188,6 @@ def plan_link_all(candidate, rendered, dotfile, recursive, printer):
 
 def plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
     """Unlink dotfiles linked to files in given profile directories."""
-    # Nested rendered files inside directories are intentionally left in place:
-    # 'unlink' keeps the profile partially rendered so a subsequent 'link'
-    # does not have to re-render.
     out = []
     if a := plan_unlink(rendered, dotfile, printer):
         out.append(a)
@@ -219,13 +211,10 @@ def dot(command, home, profiles, prefix, recursive, dry_run):
             for candidate, rendered, dotfile in walk(profile, home, prefix, printer):
                 queue.extend(planner(candidate, rendered, dotfile, recursive, printer))
 
-    # Catch duplicate profiles and name collisions across profiles: planners
-    # check the filesystem, so two actions on one target pass planning but
-    # break on apply.
     seen = set()
     for action in queue:
         if action.target in seen:
-            printer.warning(f"File {action.target} is planned more than once")
+            printer.warning(f"More than one profile modifies file {action.target}.")
         seen.add(action.target)
 
     if printer.warnings:
