@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-# /// script
-# requires-python = ">=3.10"
-# dependencies = [
-#     "rich",
-#     "typer",
-# ]
-# ///
 """
 Manage links to dotfiles.
 """
@@ -13,13 +6,12 @@ Manage links to dotfiles.
 __all__ = ["dot", "dot_from_args"]
 
 import os
+import sys
 from argparse import ArgumentParser, BooleanOptionalAction
 from dataclasses import dataclass
 from pathlib import Path
 from shutil import copymode
 from string import Template
-
-from rich.console import Console
 
 
 def __dir__():
@@ -28,7 +20,16 @@ def __dir__():
 
 # --- output -----------------------------------------------------------------
 
-console = Console(stderr=True, highlight=False, markup=False, soft_wrap=True)
+RESET = "\x1b[0m"
+STYLES = {
+    "info": "\x1b[90m",  # dark gray
+    "warning": "\x1b[33m",  # yellow
+    "error": "\x1b[31m",  # red
+}
+
+
+def style(msg, level):
+    return f"{STYLES[level]}{msg}{RESET}"
 
 
 class Printer:
@@ -45,14 +46,14 @@ class Printer:
 
     def info(self, msg):
         if self.dry_run:
-            console.print(msg, style="bright_black")
+            print(style(msg, "info"), file=sys.stderr)
 
     def warning(self, msg):
         self.warnings += 1
-        console.print(msg, style="yellow")
+        print(style(msg, "warning"), file=sys.stderr)
 
     def error(self, msg):
-        console.print(msg, style="red")
+        print(style(msg, "error"), file=sys.stderr)
 
 
 # --- actions ----------------------------------------------------------------
@@ -67,6 +68,8 @@ class Render:
 
     def apply(self) -> None:
         content = Template(self.source.read_text(encoding="utf-8")).safe_substitute(os.environ)
+        # Copy permissions before writing so a rendered secret is never
+        # world-readable, even briefly.
         self.target.touch()
         copymode(self.source, self.target)
         self.target.write_text(content, encoding="utf-8")
@@ -109,6 +112,8 @@ def plan_render(candidate, rendered, printer):
 
 
 def plan_link(rendered, dotfile, printer):
+    # Check is_symlink too: exists() follows links, so a dangling symlink
+    # otherwise looks absent and symlink_to would fail on apply.
     if not dotfile.exists() and not dotfile.is_symlink():
         printer.info(f"File {dotfile} will be created and linked to {rendered}")
         return Symlink(rendered, dotfile)
@@ -124,6 +129,7 @@ def plan_link(rendered, dotfile, printer):
 
 
 def plan_unlink(rendered, dotfile, printer):
+    # Check is_symlink too so a dangling symlink can still be unlinked.
     if not dotfile.exists() and not dotfile.is_symlink():
         printer.warning(f"File {dotfile} does not exist")
         return None
@@ -162,6 +168,8 @@ def nested_templates(folder, recursive):
     for depth in range(1, recursive):
         pattern = "/".join(["*"] * depth) + ".template"
         for tmpl in sorted(folder.glob(pattern)):
+            # Skip hidden files: a file named exactly ".template" matches
+            # "*.template" and would render to an empty name.
             if tmpl.is_file() and not tmpl.name.startswith("."):
                 base = tmpl.name.removesuffix(".template")
                 yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
@@ -211,6 +219,9 @@ def dot(command, home, profiles, prefix, recursive, dry_run):
             for candidate, rendered, dotfile in walk(profile, home, prefix, printer):
                 queue.extend(planner(candidate, rendered, dotfile, recursive, printer))
 
+    # Catch duplicate profiles and name collisions across profiles: planners
+    # check the filesystem, so two actions on one target pass planning but
+    # break on apply.
     seen = set()
     for action in queue:
         if action.target in seen:

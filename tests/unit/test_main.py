@@ -28,8 +28,9 @@ def test_system_exit(root, command, home_folder, dry_run, capsys):
 
     err = capsys.readouterr().err.splitlines()
     assert len(err) == 2  # TODO may wish to also show profile warnings
-    assert err[0].endswith("does not exist")  # warning
-    assert err[1].startswith("Error:")  # error
+    assert err[0].startswith("\x1b[33m") and err[0].endswith("\x1b[0m")  # warning (yellow)
+    assert "does not exist" in err[0]
+    assert err[1].startswith("\x1b[31mError:") and err[1].endswith("\x1b[0m")  # error (red)
     assert home.is_dir() != (home_folder != "home")
     assert not profile.is_dir()
 

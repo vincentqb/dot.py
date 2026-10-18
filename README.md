@@ -1,38 +1,38 @@
 # dot.py
 
-**dot.py** is a minimalist one-file python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. Requires **python 3.10+**.
+**dot.py** is a minimalist one-file python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. No external dependencies, just **python 3.10+**.
 
 ## Example Quick Start
 
-1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and read `dot.py` help
+1. Download [dot.py](https://raw.githubusercontent.com/vincentqb/dot.py/main/dot.py) to `~/dot.py` and read its help
 
    ```sh
-   uvx --from dot-py dot.py -h
+   python3 ~/dot.py -h
    ```
 
 1. Suppose you have a folder called `~/dotfiles/default/` containing `~/dotfiles/default/config/` and `~/dotfiles/default/netrc.template`, and you want them link as `~/.config` and `~/.netrc`. Suppose also that `~/dotfiles/default/netrc.template` contains
 
-```
-machine github.com
-login vincentqb
-password $GITHUB
-```
+   ```
+   machine github.com
+   login vincentqb
+   password $GITHUB
+   ```
 
 1. Manually delete existing `~/.netrc` and `~/.config`.
 
 1. Run
 
    ```sh
-    GITHUB=some_api_key uvx --from dot-py dot.py ~/doftiles/default
+   GITHUB=some_api_key python3 ~/dot.py link ~/dotfiles/default
    ```
 
 1. You now have `~/.netrc` and `~/.config` linked to `~/dotfiles/default/netrc.rendered` and `~/dotfiles/default/config`. Moreover, `~/dotfiles/default/netrc.rendered` contains
 
-```
-machine github.com
-login vincentqb
-password some_api_key
-```
+   ```
+   machine github.com
+   login vincentqb
+   password some_api_key
+   ```
 
 ## Development
 
