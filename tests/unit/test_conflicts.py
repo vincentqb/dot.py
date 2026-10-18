@@ -125,3 +125,20 @@ def test_render_preserves_permissions(root):
 
     mode = os.stat(profile / "env.rendered").st_mode & 0o777
     assert mode == 0o600
+
+
+@pytest.mark.parametrize("command", ["link", "unlink"])
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_top_level_template_requires_link_name(root, command, dry_run, capsys):
+    home = root / "home"
+    profile = make_profile(root, "default", {".template": "export A=1", "bashrc": "set -o vi"})
+    if command == "unlink":
+        (home / "bashrc").symlink_to(profile / "bashrc")
+
+    with pytest.raises(SystemExit) as exc:
+        dot(command=command, profiles=[str(profile)], prefix=f"{home}/", recursive=1, dry_run=dry_run)
+
+    assert exc.value.code == 1
+    assert f"Template file {profile / '.template'} yields an empty link name." in capsys.readouterr().err
+    assert not (profile / ".rendered").exists()
+    assert (home / "bashrc").is_symlink() == (command == "unlink")

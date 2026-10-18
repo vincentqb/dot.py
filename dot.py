@@ -146,13 +146,16 @@ def walk(profile, home, prefix, printer):
     """Yield (candidate, rendered, dotfile) for each top-level entry in the profile."""
     for candidate in sorted(profile.glob("*")):
         name = candidate.name
-        if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
+        if name == ".git" or (name.endswith(".rendered") and candidate.is_file()):
             printer.info(f"File {candidate} ignored.")
             continue
         if candidate.is_dir():
             yield candidate, candidate, home / f"{prefix}{name}"
         else:
             base = name.removesuffix(".template")
+            if not base:
+                printer.warning(f"Template file {candidate} yields an empty link name.")
+                continue
             rendered = candidate.parent / (base + ".rendered") if name.endswith(".template") else candidate
             dotfile = home / f"{prefix}{base}"
             yield candidate, rendered, dotfile

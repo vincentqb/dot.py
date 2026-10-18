@@ -102,6 +102,30 @@ def test_prefix_path_with_spaces_cli(cli, root):
 
 
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
+def test_dotted_names_cli(cli, root):
+    home = root / "home"
+    profile = root / "default"
+    (profile / ".config").mkdir(parents=True)
+    (profile / ".config" / "starship.toml").write_text("add_newline = false")
+    (profile / ".bashrc").write_text("set -o vi")
+    (profile / ".env.template").write_text("export A=1")
+    args = ["--prefix", "~/", str(profile)]
+
+    result = run_cli(cli, ["link", *args], env={"HOME": str(home)})
+
+    assert result.returncode == 0, result.stderr
+    assert (home / ".bashrc").readlink() == profile / ".bashrc"
+    assert (home / ".config").readlink() == profile / ".config"
+    assert (home / ".env").readlink() == profile / ".env.rendered"
+    assert (home / ".env").read_text() == "export A=1"
+
+    result = run_cli(cli, ["unlink", *args], env={"HOME": str(home)})
+
+    assert result.returncode == 0, result.stderr
+    assert list(home.iterdir()) == []
+
+
+@pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
 @pytest.mark.parametrize("args", [["--prefix", ""], ["-p", ""], ["--prefix="], ["-p="]])
 @pytest.mark.parametrize("command", ["link", "unlink"])
 @pytest.mark.parametrize("dry_run", [False, True])
