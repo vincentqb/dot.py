@@ -2,69 +2,37 @@
 
 **dot.py** is a minimalist one-file python script for managing dotfiles via symbolic links. Inspired by [bashdot](https://github.com/bashdot/bashdot), it supports multiple profiles and customizable file templates with variables. Requires **python 3.10+**.
 
-## Quick Start
+## Example Quick Start
 
-1. Install and run with `dot.py` below
-
-   ```sh
-   pip install dot.py
-   ```
-
-   or use [uv](https://docs.astral.sh/uv/getting-started/installation/)
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and read `dot.py` help
 
    ```sh
-   uvx --python 3.10 --from dot-py dot.py -h
+   uvx --from dot-py dot.py -h
    ```
 
-   or download the script directly and run with `uv run ~/dot.py` below
+1. Suppose you have a folder called `~/dotfiles/default/` containing `~/dotfiles/default/config/` and `~/dotfiles/default/netrc.template`, and you want them link as `~/.config` and `~/.netrc`. Suppose also that `~/dotfiles/default/netrc.template` contains
+
+```
+machine github.com
+login vincentqb
+password $GITHUB
+```
+
+1. Manually delete existing `~/.netrc` and `~/.config`.
+
+1. Run
 
    ```sh
-   wget https://raw.githubusercontent.com/vincentqb/dot.py/main/dot.py -O ~/dot.py
+    GITHUB=some_api_key uvx --from dot-py dot.py ~/doftiles/default
    ```
 
-1. Create your initial profile. For example, you can create a directory called `default`.
+1. You now have `~/.netrc` and `~/.config` linked to `~/dotfiles/default/netrc.rendered` and `~/dotfiles/default/config`. Moreover, `~/dotfiles/default/netrc.rendered` contains
 
-   ```sh
-   mkdir default
-   ```
-
-1. Add any files you would like linked into your home when this profile is linked.
-
-   ```sh
-   mv ~/.bashrc default/bashrc
-   ```
-
-1. Link the profile. When you link, dot.py prepends a dot, in front of the original file name, to the linked file. Below, `default/bashrc` will be linked to `~/.bashrc`. Use `--prefix` to prepend something else, or `--prefix ""` to prepend nothing, for example to link a profile into `--home ~/.config`.
-
-   ```sh
-   dot.py link default
-   ```
-
-1. You can safely re-run to link newly added files. Store this profile in a cloud drive or source control. Repeat for additional profiles.
-
-## Templates
-
-Values which need to be set in a file when dot.py is run can be placed in a template.
-
-1. Append `.template` to any files which should be rendered. For example, assume you have a file `default/bashrc.template` containing:
-
-   ```sh
-   export SECRET_KEY=$ENV_SECRET_KEY
-   ```
-
-1. The rendered files will be created in the same directory, and have `.template` replaced with `.rendered`. In the example, you can run the following to set the value `ENV_SECRET_KEY` when linking the default profile.
-
-   ```sh
-   env ENV_SECRET_KEY=test1234 dot.py link default
-   ```
-
-1. The rendered file will be linked into the home with the `.rendered` suffix removed and a dot prepended. In the example, this will result in the rendered file `default/bashrc.rendered` being created and linked to `~/.bashrc` with the below contents.
-
-   ```sh
-   export SECRET_KEY=test1234
-   ```
-
-1. Be sure to include `**/*.rendered` in `.gitignore` if you put your dotfiles into a git repository.
+```
+machine github.com
+login vincentqb
+password some_api_key
+```
 
 ## Development
 
