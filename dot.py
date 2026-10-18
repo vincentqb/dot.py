@@ -13,13 +13,12 @@ Manage links to dotfiles.
 __all__ = ["dot", "dot_from_args"]
 
 import os
+from argparse import ArgumentParser, BooleanOptionalAction
 from dataclasses import dataclass
 from pathlib import Path
 from shutil import copymode
 from string import Template
-from typing import Annotated
 
-import typer
 from rich.console import Console
 
 
@@ -234,33 +233,26 @@ COMMANDS = {
     "unlink": plan_unlink_all,
 }
 
-app = typer.Typer(help=__doc__, context_settings={"help_option_names": ["-h", "--help"]})
-
-Profiles = Annotated[list[Path], typer.Argument(help="profile directories to process")]
-Home = Annotated[Path, typer.Option(help="directory receiving the dotfiles")]
-Prefix = Annotated[str, typer.Option("--prefix", "-p", help="string prepended to each linked file name")]
-Recursive = Annotated[
-    int, typer.Option("--recursive", "-r", count=True, help="increase depth of recursion when rendering templates")
-]
-DryRun = Annotated[bool, typer.Option("--dry-run/--no-dry-run", "-d", help="show the plan without applying it")]
-
-
-@app.command(help=plan_link_all.__doc__)
-def link(
-    profiles: Profiles, home: Home = Path("~"), prefix: Prefix = ".", recursive: Recursive = 0, dry_run: DryRun = False
-):
-    dot("link", home, profiles, prefix, recursive + 1, dry_run)
-
-
-@app.command(help=plan_unlink_all.__doc__)
-def unlink(
-    profiles: Profiles, home: Home = Path("~"), prefix: Prefix = ".", recursive: Recursive = 0, dry_run: DryRun = False
-):
-    dot("unlink", home, profiles, prefix, recursive + 1, dry_run)
-
 
 def dot_from_args(*, prog="dot.py"):
-    app(prog_name=prog)
+    parser = ArgumentParser(prog=prog, description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    for cmd, fn in COMMANDS.items():
+        sp = subparsers.add_parser(cmd, description=fn.__doc__)
+        sp.add_argument("profiles", nargs="+", help="profile directories to process")
+        sp.add_argument("--home", default="~", help="directory receiving the dotfiles")
+        sp.add_argument("--prefix", "-p", default=".", help="string prepended to each linked file name")
+        sp.add_argument(
+            "-r",
+            "--recursive",
+            action="count",
+            default=1,
+            help="increase depth of recursion when rendering templates",
+        )
+        sp.add_argument(
+            "-d", "--dry-run", default=False, action=BooleanOptionalAction, help="show the plan without applying it"
+        )
+    dot(**vars(parser.parse_args()))
 
 
 if __name__ == "__main__":
