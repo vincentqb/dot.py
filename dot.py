@@ -163,10 +163,10 @@ def nested_templates(folder, recursive, printer):
     for depth in range(1, recursive):
         pattern = "/".join(["*"] * depth) + ".template"
         for tmpl in sorted(folder.glob(pattern)):
-            if tmpl.is_file() and not tmpl.name.startswith("."):
+            if tmpl.is_file():
                 base = tmpl.name.removesuffix(".template")
                 if not base:
-                    printer.warning(f"Template file {tmpl} renders to an empty name.")
+                    printer.warning(f"Template file {tmpl} yields an empty link name.")
                     continue
                 yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
 

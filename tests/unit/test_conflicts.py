@@ -62,7 +62,7 @@ def test_duplicate_profiles_conflict(root, capsys):
             dry_run=False,
         )
 
-    assert "planned more than once" in capsys.readouterr().err
+    assert f"More than one profile modifies file {home / '.bashrc'}." in capsys.readouterr().err
     assert not (home / ".bashrc").is_symlink()
 
 
@@ -74,7 +74,7 @@ def test_colliding_profiles_conflict(root, capsys):
     with pytest.raises(SystemExit):
         dot(command="link", home=str(home), profiles=[str(one), str(two)], prefix=".", recursive=1, dry_run=False)
 
-    assert "planned more than once" in capsys.readouterr().err
+    assert f"More than one profile modifies file {home / '.bashrc'}." in capsys.readouterr().err
     assert not (home / ".bashrc").is_symlink()
 
 
