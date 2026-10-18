@@ -2,6 +2,7 @@
 
 import os
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -34,7 +35,9 @@ def test_existing_file_conflict(root, dry_run, capsys):
     assert not (home / ".bashrc").is_symlink()
 
 
-def test_wrong_target_conflict(root, capsys):
+@pytest.mark.parametrize("command", ["link", "unlink"])
+@pytest.mark.parametrize("dry_run", [False, True])
+def test_wrong_target_conflict(root, capsys, command, dry_run):
     home = root / "home"
     profile = make_profile(root, "default", {"bashrc": "set -o vi"})
     other = root / "other"
@@ -42,10 +45,46 @@ def test_wrong_target_conflict(root, capsys):
     (home / ".bashrc").symlink_to(other)
 
     with pytest.raises(SystemExit):
-        dot(command="link", profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=False)
+        dot(command=command, profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=dry_run)
 
     assert "instead of" in capsys.readouterr().err
     assert (home / ".bashrc").readlink() == other
+
+
+@pytest.mark.parametrize("command", ["link", "unlink"])
+@pytest.mark.parametrize("dry_run", [False, True])
+@pytest.mark.parametrize("target_kind", ["absolute_alias", "relative_alias", "relative"])
+@pytest.mark.parametrize(
+    "source_name,link_name,files",
+    [
+        ("bashrc", "bashrc", {"bashrc": "set -o vi"}),
+        ("config", "config", {"config/settings": "value"}),
+        ("env.rendered", "env", {"env.template": "export A=1"}),
+    ],
+    ids=["file", "directory", "dangling_template"],
+)
+def test_equivalent_symlink_target(
+    root, capsys, monkeypatch, command, dry_run, target_kind, source_name, link_name, files
+):
+    home = root / "home"
+    profile = make_profile(root, "default", files)
+    alias = root / "profile-alias"
+    alias.symlink_to(profile, target_is_directory=True)
+    actual = (profile if target_kind == "relative" else alias) / source_name
+    if target_kind.startswith("relative"):
+        actual = Path(os.path.relpath(actual, home))
+    link = home / f".{link_name}"
+    link.symlink_to(actual)
+    monkeypatch.chdir(root)
+
+    dot(command=command, profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=dry_run)
+
+    assert "instead of" not in capsys.readouterr().err
+    assert link.is_symlink() == (command == "link" or dry_run)
+    if link.is_symlink():
+        assert link.readlink() == actual
+    if source_name == "env.rendered":
+        assert (profile / source_name).exists() == (command == "link" and not dry_run)
 
 
 def test_duplicate_profiles_conflict(root, capsys):

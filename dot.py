@@ -117,7 +117,7 @@ def plan_link(rendered, dotfile, printer):
         printer.warning(f"File {dotfile} exists but is not a link")
         return None
     actual = dotfile.readlink()
-    if actual != rendered:
+    if os.path.realpath(dotfile) != os.path.realpath(rendered):
         printer.warning(f"File {dotfile} exists and points to {actual} instead of {rendered}")
         return None
     printer.info(f"File {dotfile} links to {rendered} as expected")
@@ -132,7 +132,7 @@ def plan_unlink(rendered, dotfile, printer):
         printer.warning(f"File {dotfile} exists but is not a link")
         return None
     actual = dotfile.readlink()
-    if actual != rendered:
+    if os.path.realpath(dotfile) != os.path.realpath(rendered):
         printer.warning(f"File {dotfile} exists and points to {actual} instead of {rendered}")
         return None
     printer.info(f"File {dotfile} will be unlinked from {rendered}")
