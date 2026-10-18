@@ -28,7 +28,7 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
     home = root / home_folder
     profile = root / "not_a_profile"
 
-    call = [command, "--prefix", f"{home}/.", str(profile)]
+    call = [command, "--home", str(home), str(profile)]
 
     if dry_run is not None:
         if dry_run:
@@ -55,8 +55,8 @@ def test_error_code_help_cli(cli, root, command):
 
     result = run_cli(cli, command + ["-h"])
     assert result.returncode == 0
-    assert "--home" not in result.stdout
     if command:
+        assert "--home" in result.stdout
         assert "--prefix" in result.stdout
 
 
@@ -79,7 +79,7 @@ def test_prefix_cli(cli, root, option, prefix):
     profile.mkdir()
     (profile / "bashrc").write_text("set -o vi")
 
-    args = [option, f"{home}/{prefix}"] if option else []
+    args = [option, prefix] if option else []
     result = run_cli(cli, ["link", str(profile), *args], env={"HOME": str(home)})
 
     assert result.returncode == 0, result.stderr
@@ -87,7 +87,7 @@ def test_prefix_cli(cli, root, option, prefix):
 
 
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
-def test_prefix_path_with_spaces_cli(cli, root):
+def test_home_path_with_spaces_cli(cli, root):
     destination = root / "destination with spaces"
     profile = root / "profile with spaces"
     destination.mkdir()
@@ -95,10 +95,40 @@ def test_prefix_path_with_spaces_cli(cli, root):
     source = profile / "bashrc"
     source.write_text("set -o vi")
 
-    result = run_cli(cli, ["link", "--prefix", f"{destination}/.", str(profile)])
+    result = run_cli(cli, ["link", "--home", str(destination), str(profile)])
 
     assert result.returncode == 0, result.stderr
     assert (destination / ".bashrc").readlink() == source
+
+
+@pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
+@pytest.mark.parametrize("home_arg", ["~/.config", "~/.config/"])
+def test_selective_config_cli(cli, root, home_arg):
+    home = root / "home"
+    destination = home / ".config"
+    destination.mkdir()
+    existing = destination / "unmanaged"
+    existing.write_text("local state")
+    profile = root / "config"
+    (profile / "nvim").mkdir(parents=True)
+    (profile / "nvim" / "init.lua").write_text("vim.o.number = true")
+    (profile / "starship.toml").write_text("add_newline = false")
+
+    args = [str(profile), "--home", home_arg, "--prefix", ""]
+    result = run_cli(cli, ["link", *args], cwd=root, env={"HOME": str(home)})
+
+    assert result.returncode == 0, result.stderr
+    assert destination.is_dir() and not destination.is_symlink()
+    assert (destination / "nvim").readlink() == profile / "nvim"
+    assert (destination / "starship.toml").readlink() == profile / "starship.toml"
+    assert existing.read_text() == "local state"
+    assert not (profile / "unmanaged").exists()
+
+    result = run_cli(cli, ["unlink", *args], cwd=root, env={"HOME": str(home)})
+
+    assert result.returncode == 0, result.stderr
+    assert list(destination.iterdir()) == [existing]
+    assert existing.read_text() == "local state"
 
 
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
@@ -119,11 +149,13 @@ def test_empty_prefix_followed_by_options_cli(cli, root, args, command, dry_run)
     call = [
         command,
         *args,
+        "--home",
+        str(home),
         "-r",
         "--dry-run" if dry_run else "--no-dry-run",
         str(profile),
     ]
-    result = run_cli(cli, call, cwd=home)
+    result = run_cli(cli, call, cwd=root)
 
     assert result.returncode == 0, result.stderr
     linked = (command == "link") != dry_run

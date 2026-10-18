@@ -195,13 +195,12 @@ def plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
     return out
 
 
-def dot(command, profiles, prefix, recursive, dry_run):
+def dot(command, home, profiles, prefix, recursive, dry_run):
     printer = Printer(dry_run=dry_run)
     queue = []
     planner = COMMANDS[command]
 
-    home, prefix = os.path.split(os.path.expanduser(prefix))
-    home = Path(home).resolve()
+    home = Path(home).expanduser().resolve()
     if not home.is_dir():
         printer.warning(f"Folder {home} does not exist")
     else:
@@ -241,8 +240,9 @@ def dot_from_args(*, prog="dot.py"):
     subparsers = parser.add_subparsers(dest="command", required=True)
     for cmd, fn in COMMANDS.items():
         sp = subparsers.add_parser(cmd, description=fn.__doc__)
-        sp.add_argument("profiles", nargs="+", help="directories containing dotfiles to link to")
-        sp.add_argument("--prefix", "-p", default="~/.", help="destination path prefix (default: ~/.)")
+        sp.add_argument("profiles", nargs="+", help="profile directories to process")
+        sp.add_argument("--home", default="~", help="directory receiving the dotfiles (default: ~)")
+        sp.add_argument("--prefix", "-p", default=".", help="string prepended to each linked file name (default: .)")
         sp.add_argument(
             "-r",
             "--recursive",

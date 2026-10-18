@@ -28,7 +28,7 @@ def test_existing_file_conflict(root, dry_run, capsys):
     (home / ".bashrc").write_text("existing")
 
     with pytest.raises(SystemExit):
-        dot(command="link", profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=dry_run)
+        dot(command="link", home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=dry_run)
 
     assert "not a link" in capsys.readouterr().err
     assert (home / ".bashrc").read_text() == "existing"
@@ -45,7 +45,7 @@ def test_wrong_target_conflict(root, capsys, command, dry_run):
     (home / ".bashrc").symlink_to(other)
 
     with pytest.raises(SystemExit):
-        dot(command=command, profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=dry_run)
+        dot(command=command, home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=dry_run)
 
     assert "instead of" in capsys.readouterr().err
     assert (home / ".bashrc").readlink() == other
@@ -77,7 +77,7 @@ def test_equivalent_symlink_target(
     link.symlink_to(actual)
     monkeypatch.chdir(root)
 
-    dot(command=command, profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=dry_run)
+    dot(command=command, home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=dry_run)
 
     assert "instead of" not in capsys.readouterr().err
     assert link.is_symlink() == (command == "link" or dry_run)
@@ -94,8 +94,9 @@ def test_duplicate_profiles_conflict(root, capsys):
     with pytest.raises(SystemExit):
         dot(
             command="link",
+            home=str(home),
             profiles=[str(profile), str(profile)],
-            prefix=f"{home}/.",
+            prefix=".",
             recursive=1,
             dry_run=False,
         )
@@ -110,7 +111,7 @@ def test_colliding_profiles_conflict(root, capsys):
     two = make_profile(root, "two", {"bashrc": "set -o emacs"})
 
     with pytest.raises(SystemExit):
-        dot(command="link", profiles=[str(one), str(two)], prefix=f"{home}/.", recursive=1, dry_run=False)
+        dot(command="link", home=str(home), profiles=[str(one), str(two)], prefix=".", recursive=1, dry_run=False)
 
     assert f"More than one profile modifies file {home / '.bashrc'}." in capsys.readouterr().err
     assert not (home / ".bashrc").is_symlink()
@@ -126,7 +127,7 @@ def test_dangling_symlink_conflict_then_unlink(root, capsys):
 
     # Dangling link pointing elsewhere: link must conflict, not crash on apply.
     with pytest.raises(SystemExit):
-        dot(command="link", profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=False)
+        dot(command="link", home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=False)
     assert "instead of" in capsys.readouterr().err
     assert (home / ".bashrc").is_symlink()
 
@@ -136,7 +137,7 @@ def test_dangling_symlink_conflict_then_unlink(root, capsys):
     (home / ".bashrc").symlink_to(profile / "bashrc")
     (profile / "env.template").write_text("export A=$A")
     (home / ".env").symlink_to(profile / "env.rendered")
-    dot(command="unlink", profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=False)
+    dot(command="unlink", home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=False)
     assert not (home / ".env").is_symlink()
     assert not (home / ".bashrc").is_symlink()
 
@@ -149,7 +150,7 @@ def test_rendered_symlink_conflict(root, capsys):
     (profile / "env.rendered").symlink_to(victim)
 
     with pytest.raises(SystemExit):
-        dot(command="link", profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=False)
+        dot(command="link", home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=False)
 
     assert "is a link" in capsys.readouterr().err
     assert victim.read_text() == "precious"
@@ -160,7 +161,7 @@ def test_render_preserves_permissions(root):
     profile = make_profile(root, "default", {"env.template": "export A=$A"})
     (profile / "env.template").chmod(0o600)
 
-    dot(command="link", profiles=[str(profile)], prefix=f"{home}/.", recursive=1, dry_run=False)
+    dot(command="link", home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=False)
 
     mode = os.stat(profile / "env.rendered").st_mode & 0o777
     assert mode == 0o600
