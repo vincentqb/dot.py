@@ -1,4 +1,6 @@
+import os
 import subprocess
+from pathlib import Path
 
 import pytest
 from conftest import skipna
@@ -9,6 +11,15 @@ from conftest import skipna
 # PYTHONPATH=./ python -m dot --help
 
 
+def run_cli(cli, args, *, cwd=None, env=None):
+    repository = Path(__file__).resolve().parents[2]
+    command = cli.split(" ")
+    if command[0] == "./dot.py":
+        command[0] = str(repository / "dot.py")
+    child_env = {**os.environ, "PYTHONPATH": str(repository), **(env or {})}
+    return subprocess.run(command + args, check=False, capture_output=True, text=True, cwd=cwd, env=child_env)
+
+
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
 @pytest.mark.parametrize("command", ["link", "unlink"])
 @pytest.mark.parametrize("home_folder", ["home", "not_a_home"])
@@ -17,7 +28,7 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
     home = root / home_folder
     profile = root / "not_a_profile"
 
-    call = cli.split(" ") + [command, "--home", str(home), str(profile)]
+    call = [command, "--prefix", f"{home}/.", str(profile)]
 
     if dry_run is not None:
         if dry_run:
@@ -25,7 +36,7 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
         else:
             call += ["--no-dry-run"]
 
-    result = subprocess.run(call, check=False, capture_output=True, text=True)
+    result = run_cli(cli, call)
 
     assert result.returncode == 1
     # A missing home is reported and the profile is never looked at;
@@ -42,9 +53,11 @@ def test_error_code_cli(cli, root, command, home_folder, dry_run):
 def test_error_code_help_cli(cli, root, command):
     command = [command] if command else []
 
-    call = cli.split(" ") + command + ["-h"]
-    error_code = subprocess.call(call)
-    assert error_code == 0
+    result = run_cli(cli, command + ["-h"])
+    assert result.returncode == 0
+    assert "--home" not in result.stdout
+    if command:
+        assert "--prefix" in result.stdout
 
 
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
@@ -52,24 +65,40 @@ def test_error_code_help_cli(cli, root, command):
 def test_error_code_missing_cli(cli, root, command):
     command = [command] if command else []
 
-    call = cli.split(" ") + command
-    error_code = subprocess.call(call)
-    assert error_code == 2
+    result = run_cli(cli, command)
+    assert result.returncode == 2
 
 
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
-@pytest.mark.parametrize("args,prefix", [([], "."), (["--prefix", "_"], "_"), (["-p", "_"], "_")])
-def test_prefix_cli(cli, root, args, prefix):
+@pytest.mark.parametrize(
+    "option,prefix", [(None, "."), ("--prefix", "."), ("--prefix", "_"), ("-p", "_"), ("--prefix", "")]
+)
+def test_prefix_cli(cli, root, option, prefix):
     home = root / "home"
     profile = root / "default"
     profile.mkdir()
     (profile / "bashrc").write_text("set -o vi")
 
-    call = cli.split(" ") + ["link", "--home", str(home), str(profile)] + args
-    error_code = subprocess.call(call)
+    args = [option, f"{home}/{prefix}"] if option else []
+    result = run_cli(cli, ["link", str(profile), *args], env={"HOME": str(home)})
 
-    assert error_code == 0
+    assert result.returncode == 0, result.stderr
     assert (home / f"{prefix}bashrc").is_symlink()
+
+
+@pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
+def test_prefix_path_with_spaces_cli(cli, root):
+    destination = root / "destination with spaces"
+    profile = root / "profile with spaces"
+    destination.mkdir()
+    profile.mkdir()
+    source = profile / "bashrc"
+    source.write_text("set -o vi")
+
+    result = run_cli(cli, ["link", "--prefix", f"{destination}/.", str(profile)])
+
+    assert result.returncode == 0, result.stderr
+    assert (destination / ".bashrc").readlink() == source
 
 
 @pytest.mark.parametrize("cli", [skipna("dot.py"), skipna("./dot.py"), "python -m dot"])
@@ -87,16 +116,14 @@ def test_empty_prefix_followed_by_options_cli(cli, root, args, command, dry_run)
         (home / "bashrc").symlink_to(profile / "bashrc")
         (home / "folder").symlink_to(folder)
 
-    call = cli.split(" ") + [
+    call = [
         command,
         *args,
-        "--home",
-        str(home),
         "-r",
         "--dry-run" if dry_run else "--no-dry-run",
         str(profile),
     ]
-    result = subprocess.run(call, check=False, capture_output=True, text=True)
+    result = run_cli(cli, call, cwd=home)
 
     assert result.returncode == 0, result.stderr
     linked = (command == "link") != dry_run
@@ -119,8 +146,7 @@ def test_missing_prefix_value_cli(cli, root, option):
     profile.mkdir()
     (profile / "bashrc").write_text("set -o vi")
 
-    call = cli.split(" ") + ["link", option, "--home", str(home), str(profile)]
-    result = subprocess.run(call, check=False, capture_output=True, text=True)
+    result = run_cli(cli, ["link", option, "--dry-run", str(profile)])
 
     assert result.returncode == 2
     assert "expected one argument" in result.stderr
