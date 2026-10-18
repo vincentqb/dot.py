@@ -232,51 +232,29 @@ def test_path_prefix(root, prefix, cwd_name, link_name, monkeypatch):
 
 
 @pytest.mark.parametrize("prefix", ["", ".", "_"])
-def test_link_unlink_dotted_profile(root, prefix):
+def test_top_level_hidden_entries_are_ignored(root, prefix):
     home = root / "home"
     profile = root / "default"
     (profile / ".config").mkdir(parents=True)
-    (profile / ".config" / "starship.toml").write_text("add_newline = false")
-    files = {".bashrc": "set -o vi", ".gitconfig": "[user]", ".gitignore": "*.swp"}
-    for name, content in files.items():
-        (profile / name).write_text(content)
-    (profile / ".env.template").write_text("export A=$A")
+    (profile / ".config" / "settings.template").write_text("ignored")
+    (profile / ".git").mkdir()
+    for name in [".bashrc", ".gitignore", ".env.template", ".template", "env.rendered"]:
+        (profile / name).write_text("ignored")
+    source = profile / "bashrc"
+    source.write_text("set -o vi")
 
-    with set_env(A="abc123"):
-        dot(command="link", profiles=[str(profile)], prefix=f"{home}/{prefix}", recursive=1, dry_run=False)
+    dot(command="link", profiles=[str(profile)], prefix=f"{home}/{prefix}", recursive=2, dry_run=False)
 
-    for name in [*files, ".config"]:
-        assert (home / f"{prefix}{name}").readlink() == profile / name
-    assert (home / f"{prefix}.env").readlink() == profile / ".env.rendered"
-    assert (home / f"{prefix}.env").read_text() == "export A=abc123"
-    assert sorted(p.name for p in home.iterdir()) == sorted(f"{prefix}{name}" for name in [*files, ".config", ".env"])
+    assert list(home.iterdir()) == [home / f"{prefix}bashrc"]
+    assert (home / f"{prefix}bashrc").readlink() == source
+    assert not (profile / ".env.rendered").exists()
+    assert not (profile / ".rendered").exists()
+    assert not (profile / ".config" / "settings.rendered").exists()
 
-    dot(command="unlink", profiles=[str(profile)], prefix=f"{home}/{prefix}", recursive=1, dry_run=False)
+    existing = home / f"{prefix}.config"
+    existing.symlink_to(profile / ".config", target_is_directory=True)
 
-    assert list(home.iterdir()) == []
-    assert (profile / ".env.rendered").read_text() == "export A=abc123"
+    dot(command="unlink", profiles=[str(profile)], prefix=f"{home}/{prefix}", recursive=2, dry_run=False)
 
-
-@pytest.mark.parametrize("git_entry", ["directory", "file"])
-def test_git_entry_and_rendered_files_are_excluded(root, git_entry):
-    home = root / "home"
-    profile = root / "default"
-    profile.mkdir()
-    if git_entry == "directory":
-        (profile / ".git").mkdir()
-        (profile / ".git" / "config").write_text("[core]")
-    else:
-        (profile / ".git").write_text("gitdir: ../metadata")
-    (profile / "bashrc").write_text("set -o vi")
-    (profile / ".env.rendered").write_text("generated")
-
-    dot(command="link", profiles=[str(profile)], prefix=f"{home}/", recursive=1, dry_run=False)
-
-    assert list(home.iterdir()) == [home / "bashrc"]
-    assert (home / "bashrc").readlink() == profile / "bashrc"
-
-    dot(command="unlink", profiles=[str(profile)], prefix=f"{home}/", recursive=1, dry_run=False)
-
-    assert list(home.iterdir()) == []
-    assert (profile / ".git").exists()
-    assert (profile / ".env.rendered").read_text() == "generated"
+    assert list(home.iterdir()) == [existing]
+    assert existing.readlink() == profile / ".config"

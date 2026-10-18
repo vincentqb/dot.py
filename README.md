@@ -50,9 +50,7 @@ The destination directory must already exist. Relative prefixes use the current 
 
 For example, `--home /tmp --prefix _` becomes `--prefix /tmp/_`.
 
-Profiles can contain dotted file and directory names. Use `--prefix ~/` to preserve them: `.bashrc` links as `~/.bashrc`, and `.config` links as `~/.config`. Prefixes are literal, so `--prefix ~/.` would add another dot to those names.
-
-The `.git` entry and generated `*.rendered` files are excluded. Template names must contain a file name before the `.template` suffix.
+Top-level profile entries beginning with `.` and generated `*.rendered` files are ignored for every prefix. Use source names such as `bashrc` and `config`; the default prefix adds the leading dot at the destination.
 
 ## Development
 
