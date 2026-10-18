@@ -158,15 +158,16 @@ def walk(profile, home, prefix, printer):
             yield candidate, rendered, dotfile
 
 
-def nested_templates(folder, recursive):
+def nested_templates(folder, recursive, printer):
     """Yield (template, rendered, link) for each template nested inside a directory."""
     for depth in range(1, recursive):
         pattern = "/".join(["*"] * depth) + ".template"
         for tmpl in sorted(folder.glob(pattern)):
-            # Skip hidden files: ".template" renders to ".rendered",
-            # but its derived symlink name is empty.
             if tmpl.is_file() and not tmpl.name.startswith("."):
                 base = tmpl.name.removesuffix(".template")
+                if not base:
+                    printer.warning(f"Template file {tmpl} renders to an empty name.")
+                    continue
                 yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
 
 
@@ -178,7 +179,7 @@ def plan_link_all(candidate, rendered, dotfile, recursive, printer):
     if a := plan_link(rendered, dotfile, printer):
         out.append(a)
     if candidate.is_dir():
-        for tsrc, tdst, tlink in nested_templates(candidate, recursive):
+        for tsrc, tdst, tlink in nested_templates(candidate, recursive, printer):
             if a := plan_render(tsrc, tdst, printer):
                 out.append(a)
             if a := plan_link(tdst, tlink, printer):
