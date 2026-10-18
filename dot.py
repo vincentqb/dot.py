@@ -168,8 +168,8 @@ def nested_templates(folder, recursive):
     for depth in range(1, recursive):
         pattern = "/".join(["*"] * depth) + ".template"
         for tmpl in sorted(folder.glob(pattern)):
-            # Skip hidden files: a file named exactly ".template" matches
-            # "*.template" and would render to an empty name.
+            # Skip hidden files: ".template" renders to ".rendered",
+            # but its derived symlink name is empty.
             if tmpl.is_file() and not tmpl.name.startswith("."):
                 base = tmpl.name.removesuffix(".template")
                 yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
