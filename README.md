@@ -34,24 +34,6 @@
    password some_api_key
    ```
 
-## Destination prefix
-
-`--prefix` (`-p`) specifies the complete destination path before each file name. It defaults to `~/.`, so a profile file named `bashrc` links as `~/.bashrc`.
-
-| Option            | Destination for `bashrc`           |
-| ----------------- | ---------------------------------- |
-| `--prefix /tmp/.` | `/tmp/.bashrc`                     |
-| `--prefix /tmp/`  | `/tmp/bashrc`                      |
-| `--prefix /tmp/_` | `/tmp/_bashrc`                     |
-| `--prefix .`      | `.bashrc` in the current directory |
-| `--prefix ""`     | `bashrc` in the current directory  |
-
-The destination directory must already exist. Relative prefixes use the current directory, and `~` expands to your home directory. Use the same prefix for `link` and `unlink`.
-
-For example, `--home /tmp --prefix _` becomes `--prefix /tmp/_`.
-
-Top-level profile entries beginning with `.` and generated `*.rendered` files are ignored for every prefix. Use source names such as `bashrc` and `config`; the default prefix adds the leading dot at the destination.
-
 ## Development
 
 For linting, building and testing, see the [workflow](https://github.com/vincentqb/dot.py/blob/main/.github/workflows/python-app.yml).
