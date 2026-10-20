@@ -249,3 +249,24 @@ def test_top_level_hidden_entries_are_ignored(root, prefix):
 
     assert list(home.iterdir()) == [existing]
     assert existing.readlink() == profile / ".config"
+
+
+@pytest.mark.parametrize("command", ["link", "unlink"])
+def test_rerun_is_noop(root, capsys, command):
+    home = root / "home"
+    profile = root / "default"
+    (profile / "folder").mkdir(parents=True)
+    (profile / "bashrc").write_text("set -o vi")
+    (profile / "env.template").write_text("export A=1")
+    (profile / "folder" / "env.template").write_text("export A=1")
+    args = {"home": str(home), "profiles": [str(profile)], "prefix": ".", "recursive": 2}
+
+    dot(command="link", dry_run=False, **args)
+    dot(command=command, dry_run=False, **args)
+    capsys.readouterr()
+    dot(command=command, dry_run=True, **args)
+
+    lines = capsys.readouterr().err.splitlines()
+    subjects = [line.split()[1] for line in lines]
+    assert len(subjects) == len(set(subjects)), lines
+    assert not [line for line in lines if " will " in line], lines

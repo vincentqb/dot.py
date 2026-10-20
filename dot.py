@@ -8,7 +8,7 @@ __all__ = ["dot", "dot_from_args"]
 import os
 import sys
 from argparse import ArgumentParser, BooleanOptionalAction
-from dataclasses import dataclass
+from collections import Counter
 from pathlib import Path
 from shutil import copymode
 from string import Template
@@ -56,87 +56,57 @@ class Printer:
         print(style(msg, "error"), file=sys.stderr)
 
 
-# --- actions ----------------------------------------------------------------
+# --- operations -------------------------------------------------------------
 
 
-@dataclass(frozen=True, slots=True)
-class Render:
-    """Render a template: read 'source', substitute env vars, write to 'target' with 'source' permissions."""
-
-    source: Path
-    target: Path
-
-    def apply(self) -> None:
-        content = Template(self.source.read_text(encoding="utf-8")).safe_substitute(os.environ)
-        self.target.touch()
-        copymode(self.source, self.target)
-        self.target.write_text(content, encoding="utf-8")
-
-
-@dataclass(frozen=True, slots=True)
-class Symlink:
-    """Create a symbolic link at 'target' pointing to 'source'."""
-
-    source: Path
-    target: Path
-
-    def apply(self) -> None:
-        self.target.symlink_to(self.source)
-
-
-@dataclass(frozen=True, slots=True)
-class Unlink:
-    """Remove the symlink at 'target'."""
-
-    source: Path
-    target: Path
-
-    def apply(self) -> None:
-        self.target.unlink()
-
-
-# --- planners ---------------------------------------------------------------
-
-
-def plan_render(candidate, rendered, printer):
+def render(template, rendered, printer, apply):
     """Render a template."""
-    if candidate == rendered:
-        return None
     if rendered.is_symlink():
-        printer.warning(f"File {rendered} exists but is a link")
-        return None
-    printer.info(f"File {rendered} will be created.")
-    return Render(candidate, rendered)
+        printer.warning(f"File {rendered} exists but is a link.")
+        return
+    if rendered.is_dir():
+        printer.warning(f"File {rendered} exists but is a directory.")
+        return
+    content = Template(template.read_text(encoding="utf-8")).safe_substitute(os.environ)
+    if not rendered.exists():
+        printer.info(f"File {rendered} will be created.")
+    elif rendered.read_text(encoding="utf-8") != content or rendered.stat().st_mode != template.stat().st_mode:
+        printer.info(f"File {rendered} will be updated.")
+    else:
+        printer.info(f"File {rendered} is up to date.")
+        return
+    if apply:
+        rendered.touch()
+        copymode(template, rendered)
+        rendered.write_text(content, encoding="utf-8")
 
 
-def plan_link(rendered, dotfile, printer):
-    if not dotfile.exists() and not dotfile.is_symlink():
-        printer.info(f"File {dotfile} will be created and linked to {rendered}")
-        return Symlink(rendered, dotfile)
+def owned(rendered, dotfile, printer):
     if not dotfile.is_symlink():
-        printer.warning(f"File {dotfile} exists but is not a link")
-        return None
-    actual = dotfile.readlink()
-    if dotfile.resolve() != rendered.resolve():
-        printer.warning(f"File {dotfile} exists and points to {actual} instead of {rendered}")
-        return None
-    printer.info(f"File {dotfile} links to {rendered} as expected")
-    return None
+        printer.warning(f"File {dotfile} exists but is not a link.")
+    elif dotfile.resolve() != rendered.resolve():
+        printer.warning(f"File {dotfile} exists and points to {dotfile.readlink()} instead of {rendered}.")
+    else:
+        return True
+    return False
 
 
-def plan_unlink(rendered, dotfile, printer):
+def link(rendered, dotfile, printer, apply):
     if not dotfile.exists() and not dotfile.is_symlink():
-        printer.warning(f"File {dotfile} does not exist")
-        return None
-    if not dotfile.is_symlink():
-        printer.warning(f"File {dotfile} exists but is not a link")
-        return None
-    actual = dotfile.readlink()
-    if dotfile.resolve() != rendered.resolve():
-        printer.warning(f"File {dotfile} exists and points to {actual} instead of {rendered}")
-        return None
-    printer.info(f"File {dotfile} will be unlinked from {rendered}")
-    return Unlink(rendered, dotfile)
+        printer.info(f"File {dotfile} will be created and linked to {rendered}.")
+        if apply:
+            dotfile.symlink_to(rendered)
+    elif owned(rendered, dotfile, printer):
+        printer.info(f"File {dotfile} links to {rendered} as expected.")
+
+
+def unlink(rendered, dotfile, printer, apply):
+    if not dotfile.exists() and not dotfile.is_symlink():
+        printer.info(f"File {dotfile} does not exist.")
+    elif owned(rendered, dotfile, printer):
+        printer.info(f"File {dotfile} will be unlinked from {rendered}.")
+        if apply:
+            dotfile.unlink()
 
 
 # --- walk + core ------------------------------------------------------------
@@ -146,8 +116,10 @@ def walk(profile, home, prefix, printer):
     """Yield (candidate, rendered, dotfile) for each top-level entry in the profile."""
     for candidate in sorted(profile.glob("*")):
         name = candidate.name
-        if name.startswith(".") or (name.endswith(".rendered") and candidate.is_file()):
+        if name.startswith("."):
             printer.info(f"File {candidate} ignored.")
+            continue
+        if name.endswith(".rendered") and candidate.is_file():
             continue
         if candidate.is_dir():
             yield candidate, candidate, home / f"{prefix}{name}"
@@ -171,67 +143,54 @@ def nested_templates(folder, recursive, printer):
                 yield tmpl, tmpl.with_name(base + ".rendered"), tmpl.with_name(base)
 
 
-def plan_link_all(candidate, rendered, dotfile, recursive, printer):
+def link_all(candidate, rendered, dotfile, recursive, printer, apply):
     """Link dotfiles to files in given profile directories."""
-    out = []
-    if a := plan_render(candidate, rendered, printer):
-        out.append(a)
-    if a := plan_link(rendered, dotfile, printer):
-        out.append(a)
+    if candidate != rendered:
+        render(candidate, rendered, printer, apply)
+    link(rendered, dotfile, printer, apply)
     if candidate.is_dir():
-        for tsrc, tdst, tlink in nested_templates(candidate, recursive, printer):
-            if a := plan_render(tsrc, tdst, printer):
-                out.append(a)
-            if a := plan_link(tdst, tlink, printer):
-                out.append(a)
-    return out
+        for template, nested, nested_link in nested_templates(candidate, recursive, printer):
+            render(template, nested, printer, apply)
+            link(nested, nested_link, printer, apply)
 
 
-def plan_unlink_all(candidate, rendered, dotfile, recursive, printer):
+def unlink_all(candidate, rendered, dotfile, recursive, printer, apply):
     """Unlink dotfiles linked to files in given profile directories."""
-    out = []
-    if a := plan_unlink(rendered, dotfile, printer):
-        out.append(a)
-    return out
+    unlink(rendered, dotfile, printer, apply)
 
 
 def dot(command, home, profiles, prefix, recursive, dry_run):
     printer = Printer(dry_run=dry_run)
-    queue = []
-    planner = COMMANDS[command]
+    entries = []
 
     home = Path(home).expanduser().resolve()
     if not home.is_dir():
-        printer.warning(f"Folder {home} does not exist")
+        printer.warning(f"Folder {home} does not exist.")
     else:
         for p in profiles:
             profile = Path(p).expanduser().resolve()
             if not profile.is_dir():
-                printer.warning(f"Profile {profile} does not exist")
+                printer.warning(f"Profile {profile} does not exist.")
                 continue
-            for candidate, rendered, dotfile in walk(profile, home, prefix, printer):
-                queue.extend(planner(candidate, rendered, dotfile, recursive, printer))
+            entries.extend(walk(profile, home, prefix, printer))
 
-    seen = set()
-    for action in queue:
-        if action.target in seen:
-            printer.warning(f"More than one profile modifies file {action.target}.")
-        seen.add(action.target)
+    for dotfile, count in Counter(dotfile for *_, dotfile in entries).items():
+        if count > 1:
+            printer.warning(f"More than one profile modifies file {dotfile}.")
 
-    if printer.warnings:
-        printer.error("Error: There were conflicts. Exiting without changing dotfiles.")
-        raise SystemExit(1)
-
-    if not dry_run:
-        for action in queue:
-            action.apply()
+    for apply in [False] if dry_run else [False, True]:
+        for entry in entries:
+            COMMANDS[command](*entry, recursive, printer, apply)
+        if printer.warnings:
+            printer.error("Error: There were conflicts. Exiting without changing dotfiles.")
+            raise SystemExit(1)
 
 
 # --- CLI --------------------------------------------------------------------
 
 COMMANDS = {
-    "link": plan_link_all,
-    "unlink": plan_unlink_all,
+    "link": link_all,
+    "unlink": unlink_all,
 }
 
 

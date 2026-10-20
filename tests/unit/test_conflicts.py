@@ -142,18 +142,40 @@ def test_dangling_symlink_conflict_then_unlink(root, capsys):
     assert not (home / ".bashrc").is_symlink()
 
 
-def test_rendered_symlink_conflict(root, capsys):
+@pytest.mark.parametrize("kind", ["link", "directory"])
+def test_rendered_not_a_file_conflict(root, capsys, kind):
     home = root / "home"
     profile = make_profile(root, "default", {"env.template": "export A=$A"})
     victim = home / "victim"
     victim.write_text("precious")
-    (profile / "env.rendered").symlink_to(victim)
+    if kind == "link":
+        (profile / "env.rendered").symlink_to(victim)
+    else:
+        (profile / "env.rendered").mkdir()
 
     with pytest.raises(SystemExit):
         dot(command="link", home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=False)
 
-    assert "is a link" in capsys.readouterr().err
+    assert f"exists but is a {kind}" in capsys.readouterr().err
     assert victim.read_text() == "precious"
+    assert list(home.iterdir()) == [victim]
+
+
+@pytest.mark.parametrize("change", ["content", "mode"])
+def test_stale_render_is_updated(root, change):
+    home = root / "home"
+    profile = make_profile(root, "default", {"env.template": "export A=1"})
+    template, rendered = profile / "env.template", profile / "env.rendered"
+
+    dot(command="link", home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=False)
+    if change == "content":
+        template.write_text("export A=2")
+    else:
+        template.chmod(0o600)
+    dot(command="link", home=str(home), profiles=[str(profile)], prefix=".", recursive=1, dry_run=False)
+
+    assert rendered.read_text() == template.read_text()
+    assert rendered.stat().st_mode == template.stat().st_mode
 
 
 def test_render_preserves_permissions(root):
