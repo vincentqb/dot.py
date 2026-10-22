@@ -141,6 +141,47 @@ def test_link_unlink_template(root):
     assert not (target / ".env").is_symlink()
 
 
+def test_render_keeps_values_missing_from_environment(root, monkeypatch):
+    home = root / "home"
+    profile = root / "default"
+    profile.mkdir()
+    netrc = "machine github.com password {}\nmachine overleaf.com password {}\n"
+    (profile / "netrc.template").write_text(netrc.format("$GITHUB", "${OVERLEAF}"))
+    args = {"command": "link", "home": str(home), "profiles": [str(profile)], "prefix": ".", "recursive": 1}
+
+    monkeypatch.setenv("GITHUB", "pa$$word")  # values are inserted as is, never substituted again
+    monkeypatch.delenv("OVERLEAF", raising=False)
+    dot(dry_run=False, **args)
+    assert (home / ".netrc").read_text() == netrc.format("pa$$word", "${OVERLEAF}")
+
+    monkeypatch.delenv("GITHUB")
+    monkeypatch.setenv("OVERLEAF", "other")
+    dot(dry_run=False, **args)
+    assert (home / ".netrc").read_text() == netrc.format("pa$$word", "other")
+
+    monkeypatch.setenv("GITHUB", "rotated")
+    monkeypatch.delenv("OVERLEAF")
+    dot(dry_run=False, **args)
+    assert (home / ".netrc").read_text() == netrc.format("rotated", "other")
+
+
+def test_render_keeps_values_next_to_literal_dollars(root, monkeypatch):
+    home = root / "home"
+    profile = root / "default"
+    profile.mkdir()
+    (profile / "env.template").write_text("PS1='$$ '\necho $1 $A $B\n")
+    args = {"command": "link", "home": str(home), "profiles": [str(profile)], "prefix": ".", "recursive": 1}
+
+    monkeypatch.setenv("A", "a")
+    monkeypatch.delenv("B", raising=False)
+    dot(dry_run=False, **args)
+    monkeypatch.delenv("A")
+    monkeypatch.setenv("B", "b")
+    dot(dry_run=False, **args)
+
+    assert (home / ".env").read_text() == "PS1='$ '\necho $1 a b\n"
+
+
 def test_link_rendered_folder(root):
     home = root / "home"
     profile = root / "default"

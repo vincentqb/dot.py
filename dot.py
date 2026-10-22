@@ -6,6 +6,7 @@ Manage links to dotfiles.
 __all__ = ["dot", "dot_from_args"]
 
 import os
+import re
 import sys
 from argparse import ArgumentParser, BooleanOptionalAction
 from collections import Counter
@@ -59,22 +60,59 @@ class Printer:
 # --- operations -------------------------------------------------------------
 
 
+def recover(text, rendered):
+    """
+    Recover the value of each variable from a previous rendering of the template text.
+
+    Return None if the rendering does not match the template, or matches it in more than one way.
+    """
+    matches = []
+    for value in (".*?", ".*"):  # values stay on one line; shortest and longest agree only if the match is unique
+        regex, end, seen = "", 0, set()
+        for mo in Template.pattern.finditer(text):
+            name = mo["named"] or mo["braced"]
+            regex += re.escape(text[end : mo.start()])
+            if name is None:  # $$ and a stray $ both render as $
+                regex += re.escape(Template.delimiter)
+            else:
+                regex += f"(?P={name})" if name in seen else f"(?P<{name}>{value})"
+                seen.add(name)
+            end = mo.end()
+        match = re.fullmatch(regex + re.escape(text[end:]), rendered)
+        matches.append(match and match.groupdict())
+    return matches[0] if matches[0] == matches[1] else None
+
+
 def render(template, rendered, printer, apply):
-    """Render a template."""
+    """Render a template, keeping the previous value of each variable missing from the environment."""
     if rendered.is_symlink():
         printer.warning(f"File {rendered} exists but is a link.")
         return
     if rendered.is_dir():
         printer.warning(f"File {rendered} exists but is a directory.")
         return
-    content = Template(template.read_text(encoding="utf-8")).safe_substitute(os.environ)
+    text = template.read_text(encoding="utf-8")
+    content = Template(text).safe_substitute(os.environ)
     if not rendered.exists():
         printer.info(f"File {rendered} will be created.")
-    elif rendered.read_text(encoding="utf-8") != content or rendered.stat().st_mode != template.stat().st_mode:
-        printer.info(f"File {rendered} will be updated.")
     else:
-        printer.info(f"File {rendered} is up to date.")
-        return
+        previous = rendered.read_text(encoding="utf-8")
+        unset = {mo["named"] or mo["braced"] for mo in Template.pattern.finditer(text)} - {None} - os.environ.keys()
+        if unset and previous != content:
+            values = recover(text, previous)
+            if values is None:
+                names = ", ".join(f"${name}" for name in sorted(unset))
+                printer.warning(
+                    f"File {rendered} does not match {template} unambiguously, so the values of {names} cannot be"
+                    " kept; set them in the environment or remove the file."
+                )
+                return
+            content = Template(text).safe_substitute({**values, **os.environ})
+        if previous != content or rendered.stat().st_mode != template.stat().st_mode:
+            printer.info(f"File {rendered} will be updated.")
+        else:
+            printer.info(f"File {rendered} is up to date.")
+            return
     if apply:
         rendered.touch()
         copymode(template, rendered)
