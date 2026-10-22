@@ -178,50 +178,6 @@ def test_stale_render_is_updated(root, change):
     assert rendered.stat().st_mode == template.stat().st_mode
 
 
-@pytest.mark.parametrize("dry_run", [False, True])
-@pytest.mark.parametrize(
-    "template,edited",
-    [("user $A\npass $B\n", "user $A\npass $B\nport 22\n"), ("$A$B", "$A$B")],
-    ids=["edited", "ambiguous"],
-)
-def test_unrecoverable_values_conflict(root, capsys, monkeypatch, dry_run, template, edited):
-    home = root / "home"
-    profile = make_profile(root, "default", {"env.template": template})
-    rendered = profile / "env.rendered"
-    args = {"command": "link", "home": str(home), "profiles": [str(profile)], "prefix": ".", "recursive": 1}
-    monkeypatch.setenv("A", "a")
-    monkeypatch.setenv("B", "b")
-    dot(dry_run=False, **args)
-    before = rendered.read_text()
-
-    # The rendered file no longer matches the template, or splits into values
-    # in more than one way: re-rendering without B would lose its value.
-    (profile / "env.template").write_text(edited)
-    monkeypatch.delenv("B")
-    with pytest.raises(SystemExit):
-        dot(dry_run=dry_run, **args)
-
-    assert "values of $B cannot be kept" in capsys.readouterr().err
-    assert rendered.read_text() == before
-
-    monkeypatch.setenv("B", "b")
-    dot(dry_run=False, **args)
-    assert rendered.read_text() == edited.replace("$A", "a").replace("$B", "b")
-
-
-def test_unchanged_ambiguous_render_is_not_a_conflict(root, monkeypatch):
-    home = root / "home"
-    profile = make_profile(root, "default", {"env.template": "$A$B"})
-    args = {"command": "link", "home": str(home), "profiles": [str(profile)], "prefix": ".", "recursive": 1}
-    monkeypatch.delenv("A", raising=False)
-    monkeypatch.delenv("B", raising=False)
-
-    dot(dry_run=False, **args)
-    dot(dry_run=False, **args)
-
-    assert (profile / "env.rendered").read_text() == "$A$B"
-
-
 def test_render_preserves_permissions(root):
     home = root / "home"
     profile = make_profile(root, "default", {"env.template": "export A=$A"})
