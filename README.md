@@ -34,8 +34,6 @@
    password some_api_key
    ```
 
-1. Variables missing from the environment keep their previously rendered values. For instance, if the template also had a `password $OVERLEAF` line, a later `OVERLEAF=other_api_key python3 ~/dot.py link ~/dotfiles/default` would fill it in and keep `some_api_key`. After editing a template, set all its variables again: `dot.py` cannot match the old values to the new template, so it stops with a warning rather than lose them.
-
 ## Development
 
 For linting, building and testing, see the [workflow](https://github.com/vincentqb/dot.py/blob/main/.github/workflows/python-app.yml).
